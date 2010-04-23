@@ -1,0 +1,114 @@
+/*  $Header: /dist/CVS/fzclips/src/clips.h,v 1.3 2001/08/11 21:04:20 dave Exp $  */
+
+   /*******************************************************/
+   /*      "C" Language Integrated Production System      */
+   /*                                                     */
+   /*             CLIPS Version 6.10  04/13/98            */
+   /*                                                     */
+   /*                  CLIPS HEADER FILE                  */
+   /*******************************************************/
+
+/*************************************************************/
+/* Purpose:                                                  */
+/*                                                           */
+/* Principal Programmer(s):                                  */
+/*      Gary D. Riley                                        */
+/*                                                           */
+/* Contributing Programmer(s):                               */
+/*                                                           */
+/* Revision History:                                         */
+/*                                                           */
+/*************************************************************/
+
+#ifndef _H_API
+#define _H_API
+
+#include "setup.h"
+#ifndef _H_argacces
+#include "argacces.h"
+#endif
+#include "constant.h"
+#include "memalloc.h"
+#include "cstrcpsr.h"
+#include "filecom.h"
+#ifndef _H_symbol
+#include "symbol.h"
+#endif
+#ifndef _H_router
+#include "router.h"
+#endif
+#include "sysdep.h"
+#include "bmathfun.h"
+#ifndef _H_expressn
+#include "expressn.h"
+#endif
+#include "exprnpsr.h"
+#ifndef _H_evaluatn
+#include "evaluatn.h"
+#endif
+#ifndef _H_constrct
+#include "constrct.h"
+#endif
+#include "utility.h"
+#include "watch.h"
+#include "modulbsc.h"
+
+#if BLOAD_ONLY || BLOAD || BLOAD_AND_BSAVE
+#include "bload.h"
+#endif
+
+#if BLOAD_AND_BSAVE
+#include "bsave.h"
+#endif
+
+#if DEFRULE_CONSTRUCT
+#ifndef _H_ruledef
+#include "ruledef.h"
+#endif
+#include "rulebsc.h"
+#include "engine.h"
+#include "drive.h"
+#include "incrrset.h"
+#include "rulecom.h"
+#include "crstrtgy.h"
+#endif
+
+#if DEFFACTS_CONSTRUCT
+#include "dffctdef.h"
+#include "dffctbsc.h"
+#endif
+
+#if DEFTEMPLATE_CONSTRUCT
+#include "tmpltdef.h"
+#include "tmpltbsc.h"
+#include "factcom.h"
+#ifndef _H_factmngr
+#include "factmngr.h"
+#endif
+#include "facthsh.h"
+#endif
+
+#if DEFGLOBAL_CONSTRUCT
+#include "globldef.h"
+#include "globlbsc.h"
+#include "globlcom.h"
+#endif
+
+#if DEFFUNCTION_CONSTRUCT
+#include "dffnxfun.h"
+#endif
+
+#if DEFGENERIC_CONSTRUCT
+#include "genrccom.h"
+#include "genrcfun.h"
+#endif
+
+#if OBJECT_SYSTEM
+#include "extobj.h"
+#endif
+
+
+#endif
+
+
+

@@ -1,0 +1,1462 @@
+static char rcsid[] = "$Header: /dist/CVS/fzclips/src/cstrnpsr.c,v 1.3 2001/08/11 21:04:43 dave Exp $" ;
+
+   /*******************************************************/
+   /*      "C" Language Integrated Production System      */
+   /*                                                     */
+   /*             CLIPS Version 6.10  04/13/98            */
+   /*                                                     */
+   /*               CONSTRAINT PARSER MODULE              */
+   /*******************************************************/
+
+/*************************************************************/
+/* Purpose: Provides functions for parsing constraint        */
+/*   declarations.                                           */
+/*                                                           */
+/* Principal Programmer(s):                                  */
+/*      Gary D. Riley                                        */
+/*                                                           */
+/* Contributing Programmer(s):                               */
+/*      Brian Donnell                                        */
+/*                                                           */
+/* Revision History:                                         */
+/*                                                           */
+/*************************************************************/
+
+#define _CSTRNPSR_SOURCE_
+
+#include <stdio.h>
+#define _STDIO_INCLUDED_
+#include <stdlib.h>
+
+#include "setup.h"
+
+#include "constant.h"
+#include "memalloc.h"
+#include "router.h"
+#include "scanner.h"
+#include "cstrnutl.h"
+#include "cstrnchk.h"
+
+#include "cstrnpsr.h"
+
+#if FUZZY_DEFTEMPLATES
+#include "tmpltdef.h"
+#include "moduldef.h"
+#include "modulutl.h"
+#endif
+
+/***************************************/
+/* LOCAL INTERNAL FUNCTION DEFINITIONS */
+/***************************************/
+
+#if (! RUN_TIME) && (! BLOAD_ONLY)
+   static BOOLEAN                 ParseRangeCardinalityAttribute(char *,CONSTRAINT_RECORD *,
+                                                      CONSTRAINT_PARSE_RECORD *,char *,int);
+#if FUZZY_DEFTEMPLATES
+   static BOOLEAN                 ParseTypeAttribute(char *,CONSTRAINT_RECORD *,
+                                                     CONSTRAINT_PARSE_RECORD *, int);
+#else
+   static BOOLEAN                 ParseTypeAttribute(char *,CONSTRAINT_RECORD *);
+#endif
+   static void                    AddToRestrictionList(int,CONSTRAINT_RECORD *,
+                                                       CONSTRAINT_RECORD *);
+   static BOOLEAN                 ParseAllowedValuesAttribute(char *,char *,
+                                                              CONSTRAINT_RECORD *,
+                                                              CONSTRAINT_PARSE_RECORD *);
+   static int                     GetConstraintTypeFromAllowedName(char *);
+   static int                     GetConstraintTypeFromTypeName(char *);
+   static int                     GetAttributeParseValue(char *,CONSTRAINT_PARSE_RECORD *);
+   static void                    SetRestrictionFlag(int,CONSTRAINT_RECORD *,int);
+   static void                    SetParseFlag(CONSTRAINT_PARSE_RECORD *,char *);
+   static void                    NoConjunctiveUseError(char *,char *);
+#endif
+
+/********************************************************************/
+/* CheckConstraintParseConflicts: Determines if a constraint record */
+/*   has any conflicts in the attribute specifications. Returns     */
+/*   TRUE if no conflicts were detected, otherwise FALSE.           */
+/********************************************************************/
+globle BOOLEAN CheckConstraintParseConflicts(
+  CONSTRAINT_RECORD *constraints)
+  {
+   /*===================================================*/
+   /* Check to see if any of the allowed-... attributes */
+   /* conflict with the type attribute.                 */
+   /*===================================================*/
+
+   if (constraints->anyAllowed == TRUE)
+     { /* Do Nothing */ }
+   else if (constraints->symbolRestriction &&
+            (constraints->symbolsAllowed == FALSE))
+     {
+      AttributeConflictErrorMessage("type","allowed-symbols");
+      return(FALSE);
+     }
+   else if (constraints->stringRestriction &&
+            (constraints->stringsAllowed == FALSE))
+     {
+      AttributeConflictErrorMessage("type","allowed-strings");
+      return(FALSE);
+     }
+   else if (constraints->integerRestriction &&
+            (constraints->integersAllowed == FALSE))
+     {
+      AttributeConflictErrorMessage("type","allowed-integers/numbers");
+      return(FALSE);
+     }
+   else if (constraints->floatRestriction &&
+            (constraints->floatsAllowed == FALSE))
+     {
+      AttributeConflictErrorMessage("type","allowed-floats/numbers");
+      return(FALSE);
+     }
+   else if (constraints->instanceNameRestriction &&
+            (constraints->instanceNamesAllowed == FALSE))
+     {
+      AttributeConflictErrorMessage("type","allowed-instance-names");
+      return(FALSE);
+     }
+   else if (constraints->anyRestriction)
+     {
+      struct expr *exp;
+
+      for (exp = constraints->restrictionList;
+           exp != NULL;
+           exp = exp->nextArg)
+        {
+         if (ConstraintCheckValue(exp->type,exp->value,constraints) != NO_VIOLATION)
+           {
+            AttributeConflictErrorMessage("type","allowed-values");
+            return(FALSE);
+           }
+        }
+     }
+#if FUZZY_DEFTEMPLATES
+   else if (constraints->fuzzyValueRestriction && (constraints->fuzzyValuesAllowed == FALSE))
+     {/* this should never happen?? */
+      AttributeConflictErrorMessage("FUZZY VALUE type","FUZZY VALUE Restriction");
+      return(FALSE);
+     }
+#endif
+
+   /*================================================================*/
+   /* Check to see if range attribute conflicts with type attribute. */
+   /*================================================================*/
+
+   if ((constraints->maxValue != NULL) &&
+       (constraints->anyAllowed == FALSE))
+     {
+      if (((constraints->maxValue->type == INTEGER) &&
+          (constraints->integersAllowed == FALSE)) ||
+          ((constraints->maxValue->type == FLOAT) &&
+           (constraints->floatsAllowed == FALSE)))
+        {
+         AttributeConflictErrorMessage("type","range");
+         return(FALSE);
+        }
+     }
+
+   if ((constraints->minValue != NULL) &&
+       (constraints->anyAllowed == FALSE))
+     {
+      if (((constraints->minValue->type == INTEGER) &&
+          (constraints->integersAllowed == FALSE)) ||
+          ((constraints->minValue->type == FLOAT) &&
+           (constraints->floatsAllowed == FALSE)))
+        {
+         AttributeConflictErrorMessage("type","range");
+         return(FALSE);
+        }
+     }
+
+   /*=====================================================*/
+   /* Return TRUE to indicate no conflicts were detected. */
+   /*=====================================================*/
+
+   return(TRUE);
+  }
+
+/********************************************************/
+/* AttributeConflictErrorMessage: Generic error message */
+/*   for a constraint attribute conflict.               */
+/********************************************************/
+globle void AttributeConflictErrorMessage(
+  char *attribute1,
+  char *attribute2)
+  {
+   PrintErrorID("CSTRNPSR",1,TRUE);
+   PrintRouter(WERROR,"The ");
+   PrintRouter(WERROR,attribute1);
+   PrintRouter(WERROR," attribute conflicts with the ");
+   PrintRouter(WERROR,attribute2);
+   PrintRouter(WERROR," attribute.\n");
+  }
+
+#if (! RUN_TIME) && (! BLOAD_ONLY)
+
+/***************************************************************************/
+/* InitializeConstraintParseRecord: Initializes the values of a constraint */
+/*   parse record which is used to determine whether one of the standard   */
+/*   constraint specifications has already been parsed.                    */
+/***************************************************************************/
+globle void InitializeConstraintParseRecord(
+  CONSTRAINT_PARSE_RECORD *parsedConstraints)
+  {
+   parsedConstraints->type = FALSE;
+   parsedConstraints->range = FALSE;
+   parsedConstraints->allowedSymbols = FALSE;
+   parsedConstraints->allowedStrings = FALSE;
+   parsedConstraints->allowedLexemes = FALSE;
+   parsedConstraints->allowedIntegers = FALSE;
+   parsedConstraints->allowedFloats = FALSE;
+   parsedConstraints->allowedNumbers = FALSE;
+   parsedConstraints->allowedValues = FALSE;
+   parsedConstraints->allowedInstanceNames = FALSE;
+   parsedConstraints->cardinality = FALSE;
+  }
+
+/************************************************************************/
+/* StandardConstraint: Returns TRUE if the specified name is one of the */
+/*   standard constraints parseable by the routines in this module.     */
+/************************************************************************/
+globle BOOLEAN StandardConstraint(
+  char *constraintName)
+  {
+   if ((strcmp(constraintName,"type") == 0) ||
+       (strcmp(constraintName,"range") == 0) ||
+       (strcmp(constraintName,"cardinality") == 0) ||
+       (strcmp(constraintName,"allowed-symbols") == 0) ||
+       (strcmp(constraintName,"allowed-strings") == 0) ||
+       (strcmp(constraintName,"allowed-lexemes") == 0) ||
+       (strcmp(constraintName,"allowed-integers") == 0) ||
+       (strcmp(constraintName,"allowed-floats") == 0) ||
+       (strcmp(constraintName,"allowed-numbers") == 0) ||
+       (strcmp(constraintName,"allowed-instance-names") == 0) ||
+       (strcmp(constraintName,"allowed-values") == 0))
+
+     { return(TRUE); }
+
+   return(FALSE);
+  }
+
+/***********************************************************************/
+/* ParseStandardConstraint: Parses a standard constraint. Returns TRUE */
+/*   if the constraint was successfully parsed, otherwise FALSE.       */
+/***********************************************************************/
+globle BOOLEAN ParseStandardConstraint(
+  char *readSource,
+  char *constraintName,
+  CONSTRAINT_RECORD *constraints,
+  CONSTRAINT_PARSE_RECORD *parsedConstraints,
+  int multipleValuesAllowed)
+  {
+   int rv = FALSE;
+
+   /*=====================================================*/
+   /* Determine if the attribute has already been parsed. */
+   /*=====================================================*/
+
+   if (GetAttributeParseValue(constraintName,parsedConstraints))
+     {
+      AlreadyParsedErrorMessage(constraintName," attribute");
+      return(FALSE);
+     }
+
+   /*==========================================*/
+   /* If specified, parse the range attribute. */
+   /*==========================================*/
+
+   if (strcmp(constraintName,"range") == 0)
+     {
+      rv = ParseRangeCardinalityAttribute(readSource,constraints,parsedConstraints,
+                                          constraintName,multipleValuesAllowed);
+     }
+
+   /*================================================*/
+   /* If specified, parse the cardinality attribute. */
+   /*================================================*/
+
+   else if (strcmp(constraintName,"cardinality") == 0)
+     {
+      rv = ParseRangeCardinalityAttribute(readSource,constraints,parsedConstraints,
+                                          constraintName,multipleValuesAllowed);
+     }
+
+   /*=========================================*/
+   /* If specified, parse the type attribute. */
+   /*=========================================*/
+
+   else if (strcmp(constraintName,"type") == 0)
+    { 
+#if FUZZY_DEFTEMPLATES
+      rv = ParseTypeAttribute(readSource,constraints,parsedConstraints,multipleValuesAllowed);
+#else
+      rv = ParseTypeAttribute(readSource,constraints);
+#endif
+    }
+
+   /*================================================*/
+   /* If specified, parse the allowed-... attribute. */
+   /*================================================*/
+
+   else if ((strcmp(constraintName,"allowed-symbols") == 0) ||
+            (strcmp(constraintName,"allowed-strings") == 0) ||
+            (strcmp(constraintName,"allowed-lexemes") == 0) ||
+            (strcmp(constraintName,"allowed-integers") == 0) ||
+            (strcmp(constraintName,"allowed-floats") == 0) ||
+            (strcmp(constraintName,"allowed-numbers") == 0) ||
+            (strcmp(constraintName,"allowed-instance-names") == 0) ||
+            (strcmp(constraintName,"allowed-values") == 0))
+     {
+      rv = ParseAllowedValuesAttribute(readSource,constraintName,
+                                         constraints,parsedConstraints);
+     }
+
+   /*=========================================*/
+   /* Remember which constraint attribute was */
+   /* parsed and return the error status.     */
+   /*=========================================*/
+
+   SetParseFlag(parsedConstraints,constraintName);
+   return(rv);
+  }
+
+/***********************************************************/
+/* OverlayConstraint: Overlays fields of source constraint */
+/* record on destination based on which fields are set in  */
+/* the parsed constraint record. Assumes AddConstraint has */
+/* not yet been called for the destination constraint      */
+/* record.                                                 */
+/***********************************************************/
+globle void OverlayConstraint(
+  CONSTRAINT_PARSE_RECORD *pc,
+  CONSTRAINT_RECORD *cdst,
+  CONSTRAINT_RECORD *csrc)
+  {
+   if (pc->type == 0)
+     {
+      cdst->anyAllowed = csrc->anyAllowed;
+      cdst->symbolsAllowed = csrc->symbolsAllowed;
+      cdst->stringsAllowed = csrc->stringsAllowed;
+      cdst->floatsAllowed = csrc->floatsAllowed;
+      cdst->integersAllowed = csrc->integersAllowed;
+      cdst->instanceNamesAllowed = csrc->instanceNamesAllowed;
+      cdst->instanceAddressesAllowed = csrc->instanceAddressesAllowed;
+      cdst->externalAddressesAllowed = csrc->externalAddressesAllowed;
+      cdst->voidAllowed = csrc->voidAllowed;
+      cdst->factAddressesAllowed = csrc->factAddressesAllowed;
+#if FUZZY_DEFTEMPLATES
+      /* When the type constraint is a FUZZY-VALUE the type is the only
+         constraint allowed and the fuzzyValuesAllowed flag and the
+         fuzzyValueRestriction is set...also the RestrictionList will
+         contain 1 item -- a DEFTEMPLATE_PTR which is a reference to the
+         Deftemplate used by the fuzzy value. Therefore we must set
+         the destination constraints to be the same as the source-->
+         if the fuzzyValueRestriction is 1 then the list will have
+         a DEFTEMPLATE_PTR type on it.
+
+         NOTE: for fuzzy values associated with a fuzzy deftemplate
+               only the fuzzyValuesAllowed flag will be set.
+      */
+      cdst->fuzzyValuesAllowed = csrc->fuzzyValuesAllowed;
+      cdst->fuzzyValueRestriction = csrc->fuzzyValueRestriction;
+      if (cdst->fuzzyValueRestriction)
+            AddToRestrictionList(DEFTEMPLATE_PTR,cdst,csrc);
+#endif
+     }
+
+   if (pc->range == 0)
+     {
+      ReturnExpression(cdst->minValue);
+      ReturnExpression(cdst->maxValue);
+      cdst->minValue = CopyExpression(csrc->minValue);
+      cdst->maxValue = CopyExpression(csrc->maxValue);
+     }
+
+   if (pc->allowedValues == 0)
+     {
+      if ((pc->allowedSymbols == 0) &&
+          (pc->allowedStrings == 0) &&
+          (pc->allowedLexemes == 0) &&
+          (pc->allowedIntegers == 0) &&
+          (pc->allowedFloats == 0) &&
+          (pc->allowedNumbers == 0) &&
+          (pc->allowedInstanceNames == 0))
+        {
+         cdst->anyRestriction = csrc->anyRestriction;
+         cdst->symbolRestriction = csrc->symbolRestriction;
+         cdst->stringRestriction = csrc->stringRestriction;
+         cdst->floatRestriction = csrc->floatRestriction;
+         cdst->integerRestriction = csrc->integerRestriction;
+         cdst->instanceNameRestriction = csrc->instanceNameRestriction;
+         cdst->restrictionList = CopyExpression(csrc->restrictionList);
+        }
+      else
+        {
+         if ((pc->allowedSymbols == 0) && csrc->symbolRestriction)
+           {
+            cdst->symbolRestriction = 1;
+            AddToRestrictionList(SYMBOL,cdst,csrc);
+           }
+         if ((pc->allowedStrings == 0) && csrc->stringRestriction)
+           {
+            cdst->stringRestriction = 1;
+            AddToRestrictionList(STRING,cdst,csrc);
+           }
+         if ((pc->allowedLexemes == 0) && csrc->symbolRestriction && csrc->stringRestriction)
+           {
+            cdst->symbolRestriction = 1;
+            cdst->stringRestriction = 1;
+            AddToRestrictionList(SYMBOL,cdst,csrc);
+            AddToRestrictionList(STRING,cdst,csrc);
+           }
+         if ((pc->allowedIntegers == 0) && csrc->integerRestriction)
+           {
+            cdst->integerRestriction = 1;
+            AddToRestrictionList(INTEGER,cdst,csrc);
+           }
+         if ((pc->allowedFloats == 0) && csrc->floatRestriction)
+           {
+            cdst->floatRestriction = 1;
+            AddToRestrictionList(FLOAT,cdst,csrc);
+           }
+         if ((pc->allowedNumbers == 0) && csrc->integerRestriction && csrc->floatRestriction)
+           {
+            cdst->integerRestriction = 1;
+            cdst->floatRestriction = 1;
+            AddToRestrictionList(INTEGER,cdst,csrc);
+            AddToRestrictionList(FLOAT,cdst,csrc);
+           }
+         if ((pc->allowedInstanceNames == 0) && csrc->instanceNameRestriction)
+           {
+            cdst->instanceNameRestriction = 1;
+            AddToRestrictionList(INSTANCE_NAME,cdst,csrc);
+           }
+        }
+     }
+
+   if (pc->cardinality == 0)
+     {
+      ReturnExpression(cdst->minFields);
+      ReturnExpression(cdst->maxFields);
+      cdst->minFields = CopyExpression(csrc->minFields);
+      cdst->maxFields = CopyExpression(csrc->maxFields);
+     }
+  }
+
+/**********************************************/
+/* OverlayConstraintParseRecord: Performs a   */
+/*   field-wise "or" of the destination parse */
+/*   record with the source parse record.     */
+/**********************************************/
+globle void OverlayConstraintParseRecord(
+  CONSTRAINT_PARSE_RECORD *dst,
+  CONSTRAINT_PARSE_RECORD *src)
+  {
+   if (src->type) dst->type = TRUE;
+   if (src->range) dst->range = TRUE;
+   if (src->allowedSymbols) dst->allowedSymbols = TRUE;
+   if (src->allowedStrings) dst->allowedStrings = TRUE;
+   if (src->allowedLexemes) dst->allowedLexemes = TRUE;
+   if (src->allowedIntegers) dst->allowedIntegers = TRUE;
+   if (src->allowedFloats) dst->allowedFloats = TRUE;
+   if (src->allowedNumbers) dst->allowedNumbers = TRUE;
+   if (src->allowedValues) dst->allowedValues = TRUE;
+   if (src->allowedInstanceNames) dst->allowedInstanceNames = TRUE;
+   if (src->cardinality) dst->cardinality = TRUE;
+  }
+
+/************************************************************/
+/* AddToRestrictionList: Prepends atoms of the specified    */
+/* type from the source restriction list to the destination */
+/************************************************************/
+static void AddToRestrictionList(
+  int type,
+  CONSTRAINT_RECORD *cdst,
+  CONSTRAINT_RECORD *csrc)
+  {
+   struct expr *exp,*tmp;
+
+   for (exp = csrc->restrictionList; exp != NULL; exp = exp->nextArg)
+     {
+      if (exp->type == type)
+        {
+         tmp = GenConstant(exp->type,exp->value);
+         tmp->nextArg = cdst->restrictionList;
+         cdst->restrictionList = tmp;
+        }
+     }
+  }
+
+/*******************************************************************/
+/* ParseAllowedValuesAttribute: Parses the allowed-... attributes. */
+/*******************************************************************/
+static BOOLEAN ParseAllowedValuesAttribute(
+  char *readSource,
+  char *constraintName,
+  CONSTRAINT_RECORD *constraints,
+  CONSTRAINT_PARSE_RECORD *parsedConstraints)
+  {
+   struct token inputToken;
+   int expectedType, error = FALSE;
+   struct expr *newValue, *lastValue;
+   int constantParsed = FALSE, variableParsed = FALSE;
+   char *tempPtr;
+
+#if FUZZY_DEFTEMPLATES
+   /*======================================================*/
+   /* The allowed-values attribute is not allowed if a     */
+   /* FUZZY-VALUE type constraint has already been parsed. */
+   /*======================================================*/
+   if (constraints->fuzzyValuesAllowed)
+     {
+      NoConjunctiveUseError("allowed-...","type FUZZY-VALUE");
+      return(FALSE);
+     }
+
+#endif
+
+   /*======================================================*/
+   /* The allowed-values attribute is not allowed if other */
+   /* allowed-... attributes have already been parsed.     */
+   /*======================================================*/
+
+   if ((strcmp(constraintName,"allowed-values") == 0) &&
+       ((parsedConstraints->allowedSymbols) ||
+        (parsedConstraints->allowedStrings) ||
+        (parsedConstraints->allowedLexemes) ||
+        (parsedConstraints->allowedIntegers) ||
+        (parsedConstraints->allowedFloats) ||
+        (parsedConstraints->allowedNumbers) ||
+        (parsedConstraints->allowedInstanceNames)))
+     {
+      if (parsedConstraints->allowedSymbols) tempPtr = "allowed-symbols";
+      else if (parsedConstraints->allowedStrings) tempPtr = "allowed-strings";
+      else if (parsedConstraints->allowedLexemes) tempPtr = "allowed-lexemes";
+      else if (parsedConstraints->allowedIntegers) tempPtr = "allowed-integers";
+      else if (parsedConstraints->allowedFloats) tempPtr = "allowed-floats";
+      else if (parsedConstraints->allowedNumbers) tempPtr = "allowed-numbers";
+      else if (parsedConstraints->allowedInstanceNames) tempPtr = "allowed-instance-names";
+      NoConjunctiveUseError("allowed-values",tempPtr);
+      return(FALSE);
+     }
+
+   /*=======================================================*/
+   /* The allowed-values/numbers/integers/floats attributes */
+   /* are not allowed with the range attribute.             */
+   /*=======================================================*/
+
+   if (((strcmp(constraintName,"allowed-values") == 0) ||
+        (strcmp(constraintName,"allowed-numbers") == 0) ||
+        (strcmp(constraintName,"allowed-integers") == 0) ||
+        (strcmp(constraintName,"allowed-floats") == 0)) &&
+       (parsedConstraints->range))
+     {
+      NoConjunctiveUseError(constraintName,"range");
+      return(FALSE);
+     }
+
+   /*===================================================*/
+   /* The allowed-... attributes are not allowed if the */
+   /* allowed-values attribute has already been parsed. */
+   /*===================================================*/
+
+   if ((strcmp(constraintName,"allowed-values") != 0) &&
+            (parsedConstraints->allowedValues))
+     {
+      NoConjunctiveUseError(constraintName,"allowed-values");
+      return(FALSE);
+     }
+
+   /*==================================================*/
+   /* The allowed-numbers attribute is not allowed if  */
+   /* the allowed-integers or allowed-floats attribute */
+   /* has already been parsed.                         */
+   /*==================================================*/
+
+   if ((strcmp(constraintName,"allowed-numbers") == 0) &&
+       ((parsedConstraints->allowedFloats) || (parsedConstraints->allowedIntegers)))
+     {
+      if (parsedConstraints->allowedFloats) tempPtr = "allowed-floats";
+      else tempPtr = "allowed-integers";
+      NoConjunctiveUseError("allowed-numbers",tempPtr);
+      return(FALSE);
+     }
+
+   /*============================================================*/
+   /* The allowed-integers/floats attributes are not allowed if  */
+   /* the allowed-numbers attribute has already been parsed.     */
+   /*============================================================*/
+
+   if (((strcmp(constraintName,"allowed-integers") == 0) ||
+        (strcmp(constraintName,"allowed-floats") == 0)) &&
+       (parsedConstraints->allowedNumbers))
+     {
+      NoConjunctiveUseError(constraintName,"allowed-number");
+      return(FALSE);
+     }
+
+   /*==================================================*/
+   /* The allowed-lexemes attribute is not allowed if  */
+   /* the allowed-symbols or allowed-strings attribute */
+   /* has already been parsed.                         */
+   /*==================================================*/
+
+   if ((strcmp(constraintName,"allowed-lexemes") == 0) &&
+       ((parsedConstraints->allowedSymbols) || (parsedConstraints->allowedStrings)))
+     {
+      if (parsedConstraints->allowedSymbols) tempPtr = "allowed-symbols";
+      else tempPtr = "allowed-strings";
+      NoConjunctiveUseError("allowed-lexemes",tempPtr);
+      return(FALSE);
+     }
+
+   /*===========================================================*/
+   /* The allowed-symbols/strings attributes are not allowed if */
+   /* the allowed-lexemes attribute has already been parsed.    */
+   /*===========================================================*/
+
+   if (((strcmp(constraintName,"allowed-symbols") == 0) ||
+        (strcmp(constraintName,"allowed-strings") == 0)) &&
+       (parsedConstraints->allowedLexemes))
+     {
+      NoConjunctiveUseError(constraintName,"allowed-lexemes");
+      return(FALSE);
+     }
+
+   /*========================*/
+   /* Get the expected type. */
+   /*========================*/
+
+   expectedType = GetConstraintTypeFromAllowedName(constraintName);
+   SetRestrictionFlag(expectedType,constraints,TRUE);
+
+   /*=================================================*/
+   /* Get the last value in the restriction list (the */
+   /* allowed values will be appended there).         */
+   /*=================================================*/
+
+   lastValue = constraints->restrictionList;
+   if (lastValue != NULL)
+     { while (lastValue->nextArg != NULL) lastValue = lastValue->nextArg; }
+
+   /*==================================================*/
+   /* Read the allowed values and add them to the list */
+   /* until a right parenthesis is encountered.        */
+   /*==================================================*/
+
+   SavePPBuffer(" ");
+   GetToken(readSource,&inputToken);
+
+   while (inputToken.type != RPAREN)
+     {
+      SavePPBuffer(" ");
+
+      /*=============================================*/
+      /* Determine the type of the token just parsed */
+      /* and if it is an appropriate value.          */
+      /*=============================================*/
+
+      switch(inputToken.type)
+        {
+         case INTEGER:
+           if ((expectedType != UNKNOWN_VALUE) &&
+               (expectedType != INTEGER) &&
+               (expectedType != INTEGER_OR_FLOAT)) error = TRUE;
+           constantParsed = TRUE;
+           break;
+
+         case FLOAT:
+           if ((expectedType != UNKNOWN_VALUE) &&
+               (expectedType != FLOAT) &&
+               (expectedType != INTEGER_OR_FLOAT)) error = TRUE;
+           constantParsed = TRUE;
+           break;
+
+         case STRING:
+           if ((expectedType != UNKNOWN_VALUE) &&
+               (expectedType != STRING) &&
+               (expectedType != SYMBOL_OR_STRING)) error = TRUE;
+           constantParsed = TRUE;
+           break;
+
+         case SYMBOL:
+           if ((expectedType != UNKNOWN_VALUE) &&
+               (expectedType != SYMBOL) &&
+               (expectedType != SYMBOL_OR_STRING)) error = TRUE;
+           constantParsed = TRUE;
+           break;
+
+#if OBJECT_SYSTEM
+         case INSTANCE_NAME:
+           if ((expectedType != UNKNOWN_VALUE) &&
+               (expectedType != INSTANCE_NAME)) error = TRUE;
+           constantParsed = TRUE;
+           break;
+#endif
+
+         case SF_VARIABLE:
+           if (strcmp(inputToken.printForm,"?VARIABLE") == 0)
+             { variableParsed = TRUE; }
+           else
+             {
+              char tempBuffer[120];
+              sprintf(tempBuffer,"%s attribute",constraintName);
+              SyntaxErrorMessage(tempBuffer);
+              return(FALSE);
+             }
+
+           break;
+
+         default:
+           {
+            char tempBuffer[120];
+            sprintf(tempBuffer,"%s attribute",constraintName);
+            SyntaxErrorMessage(tempBuffer);
+           }
+           return(FALSE);
+        }
+
+      /*=====================================*/
+      /* Signal an error if an inappropriate */
+      /* value was found.                    */
+      /*=====================================*/
+
+      if (error)
+        {
+         PrintErrorID("CSTRNPSR",4,TRUE);
+         PrintRouter(WERROR,"Value does not match the expected type for the ");
+         PrintRouter(WERROR,constraintName);
+         PrintRouter(WERROR," attribute\n");
+         return(FALSE);
+        }
+
+      /*======================================*/
+      /* The ?VARIABLE argument can't be used */
+      /* in conjunction with constants.       */
+      /*======================================*/
+
+      if (constantParsed && variableParsed)
+        {
+         char tempBuffer[120];
+         sprintf(tempBuffer,"%s attribute",constraintName);
+         SyntaxErrorMessage(tempBuffer);
+         return(FALSE);
+        }
+
+      /*===========================================*/
+      /* Add the constant to the restriction list. */
+      /*===========================================*/
+
+      newValue = GenConstant(inputToken.type,inputToken.value);
+      if (lastValue == NULL)
+        { constraints->restrictionList = newValue; }
+      else
+        { lastValue->nextArg = newValue; }
+      lastValue = newValue;
+
+      /*=======================================*/
+      /* Begin parsing the next allowed value. */
+      /*=======================================*/
+
+      GetToken(readSource,&inputToken);
+     }
+
+   /*======================================================*/
+   /* There must be at least one value for this attribute. */
+   /*======================================================*/
+
+   if ((! constantParsed) && (! variableParsed))
+     {
+      char tempBuffer[120];
+      sprintf(tempBuffer,"%s attribute",constraintName);
+      SyntaxErrorMessage(tempBuffer);
+      return(FALSE);
+     }
+
+   /*======================================*/
+   /* If ?VARIABLE was parsed, then remove */
+   /* the restrictions for the type being  */
+   /* restricted.                          */
+   /*======================================*/
+
+   if (variableParsed)
+     {
+      switch(expectedType)
+        {
+         case UNKNOWN_VALUE:
+           constraints->anyRestriction = FALSE;
+           break;
+
+         case SYMBOL:
+           constraints->symbolRestriction = FALSE;
+           break;
+
+         case STRING:
+           constraints->stringRestriction = FALSE;
+           break;
+
+         case INTEGER:
+           constraints->integerRestriction = FALSE;
+           break;
+
+         case FLOAT:
+           constraints->floatRestriction = FALSE;
+           break;
+
+         case INTEGER_OR_FLOAT:
+           constraints->floatRestriction = FALSE;
+           constraints->integerRestriction = FALSE;
+           break;
+
+         case SYMBOL_OR_STRING:
+           constraints->symbolRestriction = FALSE;
+           constraints->stringRestriction = FALSE;
+           break;
+
+         case INSTANCE_NAME:
+           constraints->instanceNameRestriction = FALSE;
+           break;
+        }
+     }
+
+   /*=====================================*/
+   /* Fix up pretty print representation. */
+   /*=====================================*/
+
+   PPBackup();
+   PPBackup();
+   SavePPBuffer(")");
+
+   /*=======================================*/
+   /* Return TRUE to indicate the attribute */
+   /* was successfully parsed.              */
+   /*=======================================*/
+
+   return(TRUE);
+  }
+
+/***********************************************************/
+/* NoConjunctiveUseError: Generic error message indicating */
+/*   that two attributes can't be used in conjunction.     */
+/***********************************************************/
+static void NoConjunctiveUseError(
+  char *attribute1,
+  char *attribute2)
+  {
+   PrintErrorID("CSTRNPSR",3,TRUE);
+   PrintRouter(WERROR,"The ");
+   PrintRouter(WERROR,attribute1);
+   PrintRouter(WERROR," attribute cannot be used\n");
+   PrintRouter(WERROR,"in conjunction with the ");
+   PrintRouter(WERROR,attribute2);
+   PrintRouter(WERROR," attribute.\n");
+  }
+
+/**************************************************/
+/* ParseTypeAttribute: Parses the type attribute. */
+/**************************************************/
+static BOOLEAN ParseTypeAttribute(
+  char *readSource,
+#if ! FUZZY_DEFTEMPLATES
+  CONSTRAINT_RECORD *constraints)
+#else
+  CONSTRAINT_RECORD *constraints,
+  CONSTRAINT_PARSE_RECORD *parsedConstraints,
+  int multipleValuesAllowed)
+#endif
+  {
+   int typeParsed = FALSE;
+   int variableParsed = FALSE;
+   int theType;
+   struct token inputToken;
+
+   /*======================================*/
+   /* Continue parsing types until a right */
+   /* parenthesis is encountered.          */
+   /*======================================*/
+
+   SavePPBuffer(" ");
+   for (GetToken(readSource,&inputToken);
+        inputToken.type != RPAREN;
+        GetToken(readSource,&inputToken))
+     {
+      SavePPBuffer(" ");
+
+      /*==================================*/
+      /* If the token is a symbol then... */
+      /*==================================*/
+
+      if (inputToken.type == SYMBOL)
+        {
+         /*==============================================*/
+         /* ?VARIABLE can't be used with type constants. */
+         /*==============================================*/
+
+         if (variableParsed == TRUE)
+           {
+            SyntaxErrorMessage("type attribute");
+            return(FALSE);
+           }
+
+         /*========================================*/
+         /* Check for an appropriate type constant */
+         /* (e.g. SYMBOL, FLOAT, INTEGER, etc.).   */
+         /*========================================*/
+
+         theType = GetConstraintTypeFromTypeName(ValueToString(inputToken.value));
+
+#if FUZZY_DEFTEMPLATES
+         /* if the type is FUZZY-VALUE then expect the name of the fuzzy
+            deftemplate to follow. If not error. The name must be the name
+            of an already defined fuzzy deftemplate!! Set the flags for
+            fuzzyValuesAllowed and fuzzyValueRestriction and add the
+            ptr to the deftemplate (DEFTEMPLATE_PTR type) to the RestrictionList.
+            NOTE: 1. no other type is allowed.
+                  2. no other constraint (attribute) such as
+                     range/cardinality/allowed-... is allowed.
+                  3. cannot be in a multifield slot
+         */
+         if (theType == FUZZY_VALUE)
+           {
+             int count;
+             char *moduleName;
+             struct defmodule *theModule;
+             struct deftemplate *deftPtr;
+
+             if (multipleValuesAllowed)
+               {
+                 SyntaxErrorMessage("type FUZZY-VALUE (not allowed in multifield)");
+                 return(FALSE);
+               }
+             if (parsedConstraints->range || parsedConstraints->cardinality ||
+                 parsedConstraints->allowedSymbols  || parsedConstraints->allowedStrings  ||
+                 parsedConstraints->allowedLexemes  || parsedConstraints->allowedFloats  ||
+                 parsedConstraints->allowedIntegers  || parsedConstraints->allowedNumbers  ||
+                 parsedConstraints->allowedInstanceNames  || parsedConstraints->allowedValues
+                )
+               {
+                 SyntaxErrorMessage("The 'type FUZZY-VALUE' attribute cannot be used \nwith any other attribute");
+                 return(FALSE);
+               }
+             /* The next test may not be needed -- duplicates last one?? */
+             if (constraints->symbolsAllowed || constraints->stringsAllowed  ||
+                 constraints->floatsAllowed || constraints->integersAllowed  ||
+                 constraints->instanceNamesAllowed || constraints->instanceAddressesAllowed  ||
+                 constraints->externalAddressesAllowed || constraints->factAddressesAllowed ||
+                 constraints->restrictionList != NULL
+                )
+               {
+                 SyntaxErrorMessage("'type FUZZY-VALUE' \n(attribute cannot be used with any other attribute");
+                 return(FALSE);
+               }
+
+             GetToken(readSource,&inputToken);
+
+             /* token should be name of a fuzzy deftemplate */
+             if (inputToken.type != SYMBOL)
+               {
+                 SyntaxErrorMessage("type attribute \n(expecting fuzzy deftemplate name)");
+                 return(FALSE);
+               }
+
+             if (FindModuleSeparator(ValueToString(inputToken.value)))
+               {
+                 deftPtr = (struct deftemplate *)
+                      FindDeftemplate(ValueToString(inputToken.value));
+               }
+              else
+               {
+                 deftPtr = (struct deftemplate *)
+                       FindImportedConstruct("deftemplate",NULL,ValueToString(inputToken.value),
+                                             &count,TRUE,NULL);
+
+                 if (count > 1)
+                   {
+                     AmbiguousReferenceErrorMessage("deftemplate",ValueToString(inputToken.value));
+                     return(FALSE);
+                   }
+                 if (deftPtr != NULL)
+                   { /* form the fully qualified name -- e.g.  MAIN::tmpltname */
+                     PPBackup();
+                     theModule = deftPtr->header.whichModule->theModule;
+                     moduleName = ValueToString(theModule->name);
+                     SavePPBuffer(moduleName);
+                     SavePPBuffer("::");
+                     SavePPBuffer(ValueToString(inputToken.value));
+                   }
+                }
+
+              if ((deftPtr == NULL) || (SetConstraintType(theType,constraints)))
+               {
+                 if (deftPtr == NULL)
+                    SyntaxErrorMessage("type attribute \n(expecting fuzzy deftemplate name)");
+                 else
+                    SyntaxErrorMessage("type attribute \n(type FUZZY-VALUE cannot be specified more than once)");
+                 return(FALSE);
+               }
+
+             SetRestrictionFlag(theType,constraints,TRUE);
+             constraints->anyAllowed = FALSE;
+             constraints->restrictionList = GenConstant(DEFTEMPLATE_PTR, (VOID *)deftPtr);
+             typeParsed = TRUE;
+
+             GetToken(readSource,&inputToken);
+             SavePPBuffer(" ");
+             if (inputToken.type != RPAREN)
+               {
+                 SyntaxErrorMessage("type attribute \n(expecting ')' after fuzzy deftemplate name)");
+                 return(FALSE);
+               }
+             break;  /* exit from the 'while (inputToken.type != RPAREN)' loop */
+           }
+#endif
+
+         if (theType < 0)
+           {
+            SyntaxErrorMessage("type attribute");
+            return(FALSE);
+           }
+
+         /*==================================================*/
+         /* Change the type restriction flags to reflect the */
+         /* type restriction. If the type restriction was    */
+         /* already specified, then a error is generated.    */
+         /*==================================================*/
+
+         if (SetConstraintType(theType,constraints))
+           {
+            SyntaxErrorMessage("type attribute");
+            return(FALSE);
+           }
+
+         constraints->anyAllowed = FALSE;
+
+         /*===========================================*/
+         /* Remember that a type constant was parsed. */
+         /*===========================================*/
+
+         typeParsed = TRUE;
+        }
+
+      /*==============================================*/
+      /* Otherwise if the token is a variable then... */
+      /*==============================================*/
+
+      else if (inputToken.type == SF_VARIABLE)
+        {
+         /*========================================*/
+         /* The only variable allowd is ?VARIABLE. */
+         /*========================================*/
+
+         if (strcmp(inputToken.printForm,"?VARIABLE") != 0)
+           {
+            SyntaxErrorMessage("type attribute");
+            return(FALSE);
+           }
+
+         /*===================================*/
+         /* ?VARIABLE can't be used more than */
+         /* once or with type constants.      */
+         /*===================================*/
+
+         if (typeParsed || variableParsed)
+           {
+            SyntaxErrorMessage("type attribute");
+            return(FALSE);
+           }
+
+         /*======================================*/
+         /* Remember that a variable was parsed. */
+         /*======================================*/
+
+         variableParsed = TRUE;
+        }
+
+      /*====================================*/
+      /* Otherwise this is an invalid value */
+      /* for the type attribute.            */
+      /*====================================*/
+
+       else
+        {
+         SyntaxErrorMessage("type attribute");
+         return(FALSE);
+        }
+     }
+
+   /*=====================================*/
+   /* Fix up pretty print representation. */
+   /*=====================================*/
+
+   PPBackup();
+   PPBackup();
+   SavePPBuffer(")");
+
+   /*=======================================*/
+   /* The type attribute must have a value. */
+   /*=======================================*/
+
+   if ((! typeParsed) && (! variableParsed))
+     {
+      SyntaxErrorMessage("type attribute");
+      return(FALSE);
+     }
+
+   /*===========================================*/
+   /* Return TRUE indicating the type attibuted */
+   /* was successfully parsed.                  */
+   /*===========================================*/
+
+   return(TRUE);
+  }
+
+/***************************************************************************/
+/* ParseRangeCardinalityAttribute: Parses the range/cardinality attribute. */
+/***************************************************************************/
+static BOOLEAN ParseRangeCardinalityAttribute(
+  char *readSource,
+  CONSTRAINT_RECORD *constraints,
+  CONSTRAINT_PARSE_RECORD *parsedConstraints,
+  char *constraintName,
+  int multipleValuesAllowed)
+  {
+   struct token inputToken;
+   int range;
+   char *tempPtr;
+
+#if FUZZY_DEFTEMPLATES
+   /*======================================================*/
+   /* The Range/Cardinality attribute is not allowed if a  */
+   /* FUZZY-VALUE type constraint has already been parsed. */
+   /*======================================================*/
+   if (constraints->fuzzyValuesAllowed)
+     {
+      NoConjunctiveUseError("range/cardinality","type FUZZY-VALUE");
+      return(FALSE);
+     }
+
+#endif
+
+   /*=================================*/
+   /* Determine if we're parsing the  */
+   /* range or cardinality attribute. */
+   /*=================================*/
+
+   if (strcmp(constraintName,"range") == 0)
+     {
+      parsedConstraints->range = TRUE;
+      range = TRUE;
+     }
+   else
+     {
+      parsedConstraints->cardinality = TRUE;
+      range = FALSE;
+     }
+
+   /*===================================================================*/
+   /* The cardinality attribute can only be used with multifield slots. */
+   /*===================================================================*/
+
+   if ((range == FALSE) &&
+       (multipleValuesAllowed == FALSE))
+     {
+      PrintErrorID("CSTRNPSR",5,TRUE);
+      PrintRouter(WERROR,"The cardinality attribute ");
+      PrintRouter(WERROR,"can only be used with multifield slots.\n");
+      return(FALSE);
+     }
+
+   /*====================================================*/
+   /* The range attribute is not allowed with the        */
+   /* allowed-values/numbers/integers/floats attributes. */
+   /*====================================================*/
+
+   if ((range == TRUE) &&
+       (parsedConstraints->allowedValues ||
+        parsedConstraints->allowedNumbers ||
+        parsedConstraints->allowedIntegers ||
+        parsedConstraints->allowedFloats))
+     {
+      if (parsedConstraints->allowedValues) tempPtr = "allowed-values";
+      else if (parsedConstraints->allowedIntegers) tempPtr = "allowed-integers";
+      else if (parsedConstraints->allowedFloats) tempPtr = "allowed-floats";
+      else if (parsedConstraints->allowedNumbers) tempPtr = "allowed-numbers";
+      NoConjunctiveUseError("range",tempPtr);
+      return(FALSE);
+     }
+
+   /*==========================*/
+   /* Parse the minimum value. */
+   /*==========================*/
+
+   SavePPBuffer(" ");
+   GetToken(readSource,&inputToken);
+   if ((inputToken.type == INTEGER) || ((inputToken.type == FLOAT) && range))
+     {
+      if (range)
+        {
+         ReturnExpression(constraints->minValue);
+         constraints->minValue = GenConstant(inputToken.type,inputToken.value);
+        }
+      else
+        {
+         ReturnExpression(constraints->minFields);
+         constraints->minFields = GenConstant(inputToken.type,inputToken.value);
+        }
+     }
+   else if ((inputToken.type == SF_VARIABLE) && (strcmp(inputToken.printForm,"?VARIABLE") == 0))
+     { /* Do nothing. */ }
+   else
+     {
+      char tempBuffer[120];
+      sprintf(tempBuffer,"%s attribute",constraintName);
+      SyntaxErrorMessage(tempBuffer);
+      return(FALSE);
+     }
+
+   /*==========================*/
+   /* Parse the maximum value. */
+   /*==========================*/
+
+   SavePPBuffer(" ");
+   GetToken(readSource,&inputToken);
+   if ((inputToken.type == INTEGER) || ((inputToken.type == FLOAT) && range))
+     {
+      if (range)
+        {
+         ReturnExpression(constraints->maxValue);
+         constraints->maxValue = GenConstant(inputToken.type,inputToken.value);
+        }
+      else
+        {
+         ReturnExpression(constraints->maxFields);
+         constraints->maxFields = GenConstant(inputToken.type,inputToken.value);
+        }
+     }
+   else if ((inputToken.type == SF_VARIABLE) && (strcmp(inputToken.printForm,"?VARIABLE") == 0))
+     { /* Do nothing. */ }
+   else
+     {
+      char tempBuffer[120];
+      sprintf(tempBuffer,"%s attribute",constraintName);
+      SyntaxErrorMessage(tempBuffer);
+      return(FALSE);
+     }
+
+   /*================================*/
+   /* Parse the closing parenthesis. */
+   /*================================*/
+
+   GetToken(readSource,&inputToken);
+   if (inputToken.type != RPAREN)
+     {
+      SyntaxErrorMessage("range attribute");
+      return(FALSE);
+     }
+
+   /*====================================================*/
+   /* Minimum value must be less than the maximum value. */
+   /*====================================================*/
+
+   if (range)
+     {
+      if (CompareNumbers(constraints->minValue->type,
+                         constraints->minValue->value,
+                         constraints->maxValue->type,
+                         constraints->maxValue->value) == GREATER_THAN)
+        {
+         PrintErrorID("CSTRNPSR",2,TRUE);
+         PrintRouter(WERROR,"Minimum range value must be less than\n");
+         PrintRouter(WERROR,"or equal to the maximum range value\n");
+         return(FALSE);
+        }
+     }
+   else
+     {
+      if (CompareNumbers(constraints->minFields->type,
+                         constraints->minFields->value,
+                         constraints->maxFields->type,
+                         constraints->maxFields->value) == GREATER_THAN)
+        {
+         PrintErrorID("CSTRNPSR",2,TRUE);
+         PrintRouter(WERROR,"Minimum cardinality value must be less than\n");
+         PrintRouter(WERROR,"or equal to the maximum cardinality value\n");
+         return(FALSE);
+        }
+     }
+
+   /*====================================*/
+   /* Return TRUE to indicate that the   */
+   /* attribute was successfully parsed. */
+   /*====================================*/
+
+   return(TRUE);
+  }
+
+/******************************************************************/
+/* GetConstraintTypeFromAllowedName: Returns the type restriction */
+/*   associated with an allowed-... attribute.                    */
+/******************************************************************/
+static int GetConstraintTypeFromAllowedName(
+  char *constraintName)
+  {
+   if (strcmp(constraintName,"allowed-values") == 0) return(UNKNOWN_VALUE);
+   else if (strcmp(constraintName,"allowed-symbols") == 0) return(SYMBOL);
+   else if (strcmp(constraintName,"allowed-strings") == 0) return(STRING);
+   else if (strcmp(constraintName,"allowed-lexemes") == 0) return(SYMBOL_OR_STRING);
+   else if (strcmp(constraintName,"allowed-integers") == 0) return(INTEGER);
+   else if (strcmp(constraintName,"allowed-numbers") == 0) return(INTEGER_OR_FLOAT);
+   else if (strcmp(constraintName,"allowed-instance-names") == 0) return(INSTANCE_NAME);
+   else if (strcmp(constraintName,"allowed-floats") == 0) return(FLOAT);
+
+   return(-1);
+  }
+
+/*******************************************************/
+/* GetConstraintTypeFromTypeName: Converts a type name */
+/*   to its equivalent integer type restriction.       */
+/*******************************************************/
+static int GetConstraintTypeFromTypeName(
+  char *constraintName)
+  {
+   if (strcmp(constraintName,"SYMBOL") == 0) return(SYMBOL);
+   else if (strcmp(constraintName,"STRING") == 0) return(STRING);
+   else if (strcmp(constraintName,"LEXEME") == 0) return(SYMBOL_OR_STRING);
+   else if (strcmp(constraintName,"INTEGER") == 0) return(INTEGER);
+   else if (strcmp(constraintName,"FLOAT") == 0) return(FLOAT);
+   else if (strcmp(constraintName,"NUMBER") == 0) return(INTEGER_OR_FLOAT);
+   else if (strcmp(constraintName,"INSTANCE-NAME") == 0) return(INSTANCE_NAME);
+   else if (strcmp(constraintName,"INSTANCE-ADDRESS") == 0) return(INSTANCE_ADDRESS);
+   else if (strcmp(constraintName,"INSTANCE") == 0) return(INSTANCE_OR_INSTANCE_NAME);
+   else if (strcmp(constraintName,"EXTERNAL-ADDRESS") == 0) return(EXTERNAL_ADDRESS);
+   else if (strcmp(constraintName,"FACT-ADDRESS") == 0) return(FACT_ADDRESS);
+#if FUZZY_DEFTEMPLATES
+   else if (strcmp(constraintName,"FUZZY-VALUE") == 0) return(FUZZY_VALUE);
+#endif
+
+   return(-1);
+  }
+
+/**************************************************************/
+/* GetAttributeParseValue: Returns a boolean value indicating */
+/*   whether a specific attribute has already been parsed.    */
+/**************************************************************/
+static int GetAttributeParseValue(
+  char *constraintName,
+  CONSTRAINT_PARSE_RECORD *parsedConstraints)
+  {
+   if (strcmp(constraintName,"type") == 0)
+     { return(parsedConstraints->type); }
+   else if (strcmp(constraintName,"range") == 0)
+     { return(parsedConstraints->range); }
+   else if (strcmp(constraintName,"cardinality") == 0)
+     { return(parsedConstraints->cardinality); }
+   else if (strcmp(constraintName,"allowed-values") == 0)
+     { return(parsedConstraints->allowedValues); }
+   else if (strcmp(constraintName,"allowed-symbols") == 0)
+     { return(parsedConstraints->allowedSymbols); }
+   else if (strcmp(constraintName,"allowed-strings") == 0)
+     { return(parsedConstraints->allowedStrings); }
+   else if (strcmp(constraintName,"allowed-lexemes") == 0)
+     { return(parsedConstraints->allowedLexemes); }
+   else if (strcmp(constraintName,"allowed-instance-names") == 0)
+     { return(parsedConstraints->allowedInstanceNames); }
+   else if (strcmp(constraintName,"allowed-integers") == 0)
+     { return(parsedConstraints->allowedIntegers); }
+   else if (strcmp(constraintName,"allowed-floats") == 0)
+     { return(parsedConstraints->allowedFloats); }
+   else if (strcmp(constraintName,"allowed-numbers") == 0)
+     { return(parsedConstraints->allowedNumbers); }
+
+   return(TRUE);
+  }
+
+/**********************************************************/
+/* SetRestrictionFlag: Sets the restriction flag of a     */
+/*   constraint record indicating whether a specific      */
+/*   type has an associated allowed-... restriction list. */
+/**********************************************************/
+static void SetRestrictionFlag(
+  int restriction,
+  CONSTRAINT_RECORD *constraints,
+  int value)
+  {
+   switch (restriction)
+     {
+      case UNKNOWN_VALUE:
+         constraints->anyRestriction = value;
+         break;
+
+      case SYMBOL:
+         constraints->symbolRestriction = value;
+         break;
+
+      case STRING:
+         constraints->stringRestriction = value;
+         break;
+
+      case INTEGER:
+         constraints->integerRestriction = value;
+         break;
+
+      case FLOAT:
+         constraints->floatRestriction = value;
+         break;
+
+      case INTEGER_OR_FLOAT:
+         constraints->integerRestriction = value;
+         constraints->floatRestriction = value;
+         break;
+
+      case SYMBOL_OR_STRING:
+         constraints->symbolRestriction = value;
+         constraints->stringRestriction = value;
+         break;
+
+      case INSTANCE_NAME:
+         constraints->instanceNameRestriction = value;
+         break;
+
+#if FUZZY_DEFTEMPLATES 
+      case FUZZY_VALUE:
+         constraints->fuzzyValueRestriction = value;
+         break;
+
+#endif
+
+     }
+  }
+
+/********************************************************************/
+/* SetParseFlag: Sets the flag in a parsed constraints data         */
+/*  structure indicating that a specific attribute has been parsed. */
+/********************************************************************/
+static void SetParseFlag(
+  CONSTRAINT_PARSE_RECORD *parsedConstraints,
+  char *constraintName)
+  {
+   if (strcmp(constraintName,"range") == 0)
+     { parsedConstraints->range = TRUE; }
+   else if (strcmp(constraintName,"type") == 0)
+     { parsedConstraints->type = TRUE; }
+   else if (strcmp(constraintName,"cardinality") == 0)
+     { parsedConstraints->cardinality = TRUE; }
+   else if (strcmp(constraintName,"allowed-symbols") == 0)
+     { parsedConstraints->allowedSymbols = TRUE; }
+   else if (strcmp(constraintName,"allowed-strings") == 0)
+     { parsedConstraints->allowedStrings = TRUE; }
+   else if (strcmp(constraintName,"allowed-lexemes") == 0)
+     { parsedConstraints->allowedLexemes = TRUE; }
+   else if (strcmp(constraintName,"allowed-integers") == 0)
+     { parsedConstraints->allowedIntegers = TRUE; }
+   else if (strcmp(constraintName,"allowed-floats") == 0)
+     { parsedConstraints->allowedFloats = TRUE; }
+   else if (strcmp(constraintName,"allowed-numbers") == 0)
+     { parsedConstraints->allowedNumbers = TRUE; }
+   else if (strcmp(constraintName,"allowed-values") == 0)
+     { parsedConstraints->allowedValues = TRUE; }
+  }
+
+#endif /* (! RUN_TIME) && (! BLOAD_ONLY) */
+

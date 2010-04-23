@@ -1,0 +1,16 @@
+BOOL FAR PASCAL WatchDlgProc( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL OptionDlgProc( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL AboutDlg( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL DefRuleManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL DefGlobalManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL DefFactManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL DefTemplateManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL DefFunctionManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL DefGenericManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL DefClassManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL DefInstanceManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL AgendaManager( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL ExecDlg ( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL JoeMessage ( HWND, unsigned, WORD, LONG );
+BOOL FAR PASCAL CommandComplete( HWND, unsigned, WORD, LONG );
+int  JoeWarnings ( LPSTR );

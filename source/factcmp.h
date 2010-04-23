@@ -1,0 +1,47 @@
+/*  $Header: /dist/CVS/fzclips/src/factcmp.h,v 1.3 2001/08/11 21:05:31 dave Exp $  */
+
+   /*******************************************************/
+   /*      "C" Language Integrated Production System      */
+   /*                                                     */
+   /*             CLIPS Version 6.05  04/09/97            */
+   /*                                                     */
+   /*          FACT CONSTRUCT COMPILER HEADER FILE        */
+   /*******************************************************/
+
+/*************************************************************/
+/* Purpose:                                                  */
+/*                                                           */
+/* Principal Programmer(s):                                  */
+/*      Gary D. Riley                                        */
+/*                                                           */
+/* Contributing Programmer(s):                               */
+/*                                                           */
+/* Revision History:                                         */
+/*                                                           */
+/*************************************************************/
+
+#ifndef _H_factcmp
+
+#define _H_factcmp
+
+#ifndef _H_pattern
+#include "pattern.h"
+#endif
+#ifndef _H_network
+#include "network.h"
+#endif
+
+#ifdef LOCALE
+#undef LOCALE
+#endif
+
+#ifdef _FACTCMP_SOURCE_
+#define LOCALE
+#else
+#define LOCALE extern
+#endif
+
+   LOCALE void                           FactPatternsCompilerSetup(void);
+   LOCALE void                           FactPatternNodeReference(void *,FILE *,int,int);
+
+#endif
