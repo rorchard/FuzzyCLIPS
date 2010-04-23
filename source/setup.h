@@ -41,7 +41,7 @@
 /* Only one of these flags should be turned on (set to 1) at a time. */
 /*********************************************************************/
 
-#define GENERIC 0   /* Generic (any machine)                  */
+#define GENERIC 1   /* Generic (any machine)                  */
 #define VAX_VMS 0   /* VAX VMS                                */
 #define UNIX_V  0   /* UNIX System V or 4.2bsd or HP Unix     */
 #define UNIX_7  0   /* UNIX System III Version 7 or Sun Unix  */
@@ -53,7 +53,7 @@
 #define IBM_MCW 0   /* IBM PC, with CodeWarrior 3.0           */
 #define IBM_ZTC 0   /* IBM PC, with Zortech C++ 3.1           */
 #define IBM_MSC 0   /* IBM PC, with Microsoft C 6.0           */
-#define IBM_TBC 1   /* IBM PC, with Borland C++ 5.0           */
+#define IBM_TBC 0   /* IBM PC, with Borland C++ 5.0           */
 #define IBM_ICB 0   /* IBM PC, with Intel C Code Builder 1.0  */
 #define IBM_SC  0   /* IBM PC, with Symantec C++ 6.1          */
 #define IBM_GCC 0   /* IBM PC, with DJGPP 2.01                */
