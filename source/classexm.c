@@ -1184,10 +1184,10 @@ static void DisplaySlotConstraintInfo(
 static char *ConstraintCode(
   CONSTRAINT_RECORD *cr,
   unsigned allow,
-  unsigned restrict)
+  unsigned restricted_value)
   {
    if (allow || cr->anyAllowed)
-     return((restrict || cr->anyRestriction) ? " #  " : " +  ");
+     return((restricted_value || cr->anyRestriction) ? " #  " : " +  ");
    return("    ");
   }
 
