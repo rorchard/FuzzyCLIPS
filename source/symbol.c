@@ -451,8 +451,8 @@ globle void *AddBitMap(
 /*   fuzzy value is returned.  Otherwise, the it's hashed into the */
 /*   table and the address of the fuzzy value is returned.         */
 /*******************************************************************/
-globle VOID *AddFuzzyValue(fv)
-   struct fuzzy_value *fv;
+globle VOID *AddFuzzyValue(
+   struct fuzzy_value *fv)
    {
     int tally, i;
     FUZZY_VALUE_HN *past = NULL, *peek;
@@ -740,9 +740,9 @@ globle int HashBitMap(
 /************************************************************/
 /* HashFuzzyValue: Computes a hash value for a fuzzy value. */
 /************************************************************/
-globle int HashFuzzyValue(fv,range)
-  struct fuzzy_value *fv;
-  int range;
+globle int HashFuzzyValue(
+  struct fuzzy_value *fv,
+  int range)
   {
     union
      {  
@@ -781,8 +781,8 @@ globle int HashFuzzyValue(fv,range)
 /*   Adds the fuzzy Value to the EphemeralSymbolList if the count becomes zero.          */
 /*                                                                                   */
 /*************************************************************************************/
-globle VOID DecrementFuzzyValueCount(theValue)
-  FUZZY_VALUE_HN *theValue;
+globle VOID DecrementFuzzyValueCount(
+  FUZZY_VALUE_HN *theValue)
   {
         if (theValue->count < 0)
           {
@@ -1236,8 +1236,8 @@ globle FUZZY_VALUE_HN **GetFuzzyValueTable()
 /**************************************************************/
 /* SetFuzzyValueTable: Sets the value of the FuzzyValueTable. */
 /**************************************************************/
-globle VOID SetFuzzyValueTable(value)
-  FUZZY_VALUE_HN **value;
+globle VOID SetFuzzyValueTable(
+  FUZZY_VALUE_HN **value)
   {
    FuzzyValueTable = value;
   }

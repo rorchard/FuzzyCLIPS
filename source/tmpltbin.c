@@ -745,9 +745,9 @@ static void UpdateDeftemplate(
 /* UpdateLvPlusUniverse: Updates pointers in bloaded  */
 /*   LvPlusUniverse slot structures.                  */
 /******************************************************/
-static void UpdateLvPlusUniverse(buf,obji)
-  void *buf;
-  long obji;
+static void UpdateLvPlusUniverse(
+  void *buf,
+  long obji)
   {
     struct fuzzyLv *lvpuPtr;
     struct bsaveLvPlusUniverse *blvpuPtr;
@@ -777,9 +777,9 @@ static void UpdateLvPlusUniverse(buf,obji)
 /* UpdateFuzzyPrimaryTerms: Updates pointers in bloaded  */
 /*   primary term data structures.                       */
 /*********************************************************/
-static void UpdateFuzzyPrimaryTerms(buf,obji)
-  void *buf;
-  long obji;
+static void UpdateFuzzyPrimaryTerms(
+  void *buf,
+  long obji)
   {
     struct primary_term *ptPtr;
     struct bsaveFuzzyPrimaryTerm *bptPtr;

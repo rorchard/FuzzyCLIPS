@@ -456,9 +456,9 @@ globle void PrintFactPNConstant2(
 #if IBM_TBC && (! DEVELOPER)
 #pragma argsused
 #endif
-globle VOID PrintPNFUZZY_VALUE(logicalName,theValue)
-  char *logicalName;
-  VOID *theValue;
+globle VOID PrintPNFUZZY_VALUE(
+  char *logicalName,
+  VOID *theValue)
   {
 #if DEVELOPER
 

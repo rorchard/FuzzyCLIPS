@@ -405,12 +405,12 @@ static struct lhsParseNode *GetSingleLHSSlot(
 /*  e.g.   (temp very cold)   or (temp ?)  or        */
 /*         (temp ?x&very cold)                       */
 /*****************************************************/
-static struct lhsParseNode *GetFuzzySingleLHSSlot(readSource,tempToken,theDeftemplate,error,position)
-  char *readSource;
-  struct token *tempToken;
-  struct deftemplate *theDeftemplate;
-  int *error;
-  int position;
+static struct lhsParseNode *GetFuzzySingleLHSSlot(
+  char *readSource,
+  struct token *tempToken,
+  struct deftemplate *theDeftemplate,
+  int *error,
+  int position)
   {
    struct lhsParseNode *nextSlot;
    struct templateSlot *slotPtr = theDeftemplate->slotList;

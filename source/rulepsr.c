@@ -311,9 +311,8 @@ globle int ParseDefrule(
 /* return null if none found                                  */
 /**************************************************************/
 
-static FUZZY_VALUE_HN *findFuzzyValueInNetworktest( netTestPtr )
-
-  struct expr *netTestPtr;
+static FUZZY_VALUE_HN *findFuzzyValueInNetworktest(
+  struct expr *netTestPtr)
 {
   FUZZY_VALUE_HN *temp;
 
@@ -613,7 +612,7 @@ static struct defrule *ProcessRuleLHS(
            if (i != numFuzzySlots)
             {
                PrintRouter(WERROR,"Internal ERROR *** Fuzzy structures -- routine ProcessRuleLHS\n");
-               exit( 2 );
+               genexit( 2 );
             }
         }
 #else

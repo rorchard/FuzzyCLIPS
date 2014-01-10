@@ -208,15 +208,15 @@ globle BOOLEAN RemoveHashedFact(
 /*       the fuzzy slots all have the same FUZZY_VALUE */
 /*       type -- i.e. both temperature deftemplates    */
 /*******************************************************/
-globle int HandleExistingFuzzyFact(theFact)
-  VOID **theFact;
+globle int HandleExistingFuzzyFact(
+  VOID **theFact)
   {
    struct fact *tempFact;
    struct factHashEntry *theFactHash;
    int hashValue;
    struct fact *theFactPtr = (struct fact *)*theFact;
 
-   hashValue = HashFact((VOID *)theFactPtr);
+   hashValue = HashFact(theFactPtr);
 
    /* Fuzzy facts never get duplicated ... they just get modified if they
       already exist ... always allow duplication for them...

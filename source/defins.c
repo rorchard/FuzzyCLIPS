@@ -463,7 +463,10 @@ static int ParseDefinstances(
    dobj->busy = 0;
    dobj->mkinstance = NULL;
 #if INSTANCE_PATTERN_MATCHING
-   mkinsfcall = (void *) FindFunction(active ? "active-make-instance" : "make-instance");
+   if (active)
+     mkinsfcall = (void *) FindFunction("active-make-instance");
+   else
+     mkinsfcall = (void *) FindFunction("make-instance");
 #else
    mkinsfcall = (void *) FindFunction("make-instance");
 #endif

@@ -507,6 +507,7 @@ static struct expr *GetSlotAssertValues(
    struct expr *slotItem;
    struct expr *newArg, *tempArg;
    DATA_OBJECT theDefault;
+   char *nullBitMap = "\0";
 
    /*==================================================*/
    /* Determine if the slot is assigned in the assert. */
@@ -577,7 +578,7 @@ static struct expr *GetSlotAssertValues(
 
    if (slotPtr->multislot)
      {
-      tempArg = GenConstant(FACT_STORE_MULTIFIELD,AddBitMap("\0",1));
+      tempArg = GenConstant(FACT_STORE_MULTIFIELD,AddBitMap((void *) nullBitMap,1));
       tempArg->argList = newArg;
       newArg = tempArg;
      }

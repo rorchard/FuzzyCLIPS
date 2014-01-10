@@ -1379,7 +1379,7 @@ static void PrintNodes(
            break;
 
          default:
-           PrintRouter(fileid,"(???)");
+           PrintRouter(fileid,"(unknown)");
            break;
 
         }

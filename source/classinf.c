@@ -637,28 +637,62 @@ globle void SlotFacets(
    for (i = 1 ; i <= 9 ; i++)
      SetMFType(result->value,i,SYMBOL);
 #endif
-   SetMFValue(result->value,1,AddSymbol(sp->multiple ? "MLT" : "SGL"));
+   if (sp->multiple)
+     SetMFValue(result->value,1,AddSymbol("MLT"));
+   else
+     SetMFValue(result->value,1,AddSymbol("SGL"));
    if (sp->noDefault)
      SetMFValue(result->value,2,AddSymbol("NIL"));
    else
-     SetMFValue(result->value,2,AddSymbol(sp->dynamicDefault ? "DYN" : "STC"));
-   SetMFValue(result->value,3,AddSymbol(sp->noInherit ? "NIL" : "INH"));
+     {
+      if (sp->dynamicDefault)
+        SetMFValue(result->value,2,AddSymbol("DYN"));
+      else
+        SetMFValue(result->value,2,AddSymbol("STC"));
+     }
+   if (sp->noInherit)    
+     SetMFValue(result->value,3,AddSymbol("NIL"));
+   else
+     SetMFValue(result->value,3,AddSymbol("INH"));
    if (sp->initializeOnly)
      SetMFValue(result->value,4,AddSymbol("INT"));
    else if (sp->noWrite)
      SetMFValue(result->value,4,AddSymbol("R"));
    else
      SetMFValue(result->value,4,AddSymbol("RW"));
-   SetMFValue(result->value,5,AddSymbol(sp->shared ? "SHR" : "LCL"));
+   if (sp->shared)     
+     SetMFValue(result->value,5,AddSymbol("SHR"));
+   else
+     SetMFValue(result->value,5,AddSymbol("LCL"));
 #if INSTANCE_PATTERN_MATCHING
-   SetMFValue(result->value,6,AddSymbol(sp->reactive ? "RCT" : "NIL"));
-   SetMFValue(result->value,7,AddSymbol(sp->composite ? "CMP" : "EXC"));
-   SetMFValue(result->value,8,AddSymbol(sp->publicVisibility ? "PUB" : "PRV"));
+   if (sp->reactive)   
+     SetMFValue(result->value,6,AddSymbol("RCT"));
+   else
+     SetMFValue(result->value,6,AddSymbol("NIL"));
+   
+   if (sp->composite)
+     SetMFValue(result->value,7,AddSymbol("CMP"));
+   else
+     SetMFValue(result->value,7,AddSymbol("EXC"));
+
+   if (sp->publicVisibility)   
+     SetMFValue(result->value,8,AddSymbol("PUB"));
+   else
+     SetMFValue(result->value,8,AddSymbol("PRV"));
+     
    SetMFValue(result->value,9,AddSymbol(GetCreateAccessorString((void *) sp)));
    SetMFValue(result->value,10,sp->noWrite ? AddSymbol("NIL") : (void *) sp->overrideMessage);
 #else
-   SetMFValue(result->value,6,AddSymbol(sp->composite ? "CMP" : "EXC"));
-   SetMFValue(result->value,7,AddSymbol(sp->publicVisibility ? "PUB" : "PRV"));
+   if (sp->composite)
+     SetMFValue(result->value,6,AddSymbol("CMP"));
+   else
+     SetMFValue(result->value,6,AddSymbol("EXC"));
+
+   if (sp->publicVisibility)
+     SetMFValue(result->value,7,AddSymbol("PUB"));
+   else
+     SetMFValue(result->value,7,AddSymbol("PRV"));
+     
    SetMFValue(result->value,8,AddSymbol(GetCreateAccessorString((void *) sp)));
    SetMFValue(result->value,9,sp->noWrite ? AddSymbol("NIL") : (void *) sp->overrideMessage);
 #endif

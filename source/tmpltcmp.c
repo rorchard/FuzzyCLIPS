@@ -360,13 +360,13 @@ static void CloseDeftemplateFiles(
 #if IBM_TBC
 #pragma argsused
 #endif
-static VOID LvUniverseToCode(lvUniverseFile,lvPtr,imageID,maxIndices,
-                             primaryTermArrayCount,primaryTermArrayVersion)
-  FILE *lvUniverseFile;
-  struct fuzzyLv *lvPtr;
-  int imageID;
-  int maxIndices;
-  int primaryTermArrayCount,primaryTermArrayVersion;
+static VOID LvUniverseToCode(
+  FILE *lvUniverseFile,
+  struct fuzzyLv *lvPtr,
+  int imageID,
+  int maxIndices,
+  int primaryTermArrayCount,
+  int primaryTermArrayVersion)
   {
 #if MAC_MPW
 #pragma unused(maxIndices)
@@ -382,13 +382,13 @@ static VOID LvUniverseToCode(lvUniverseFile,lvPtr,imageID,maxIndices,
 /************************************************************/
 /* primaryTermToCode:                                       */
 /************************************************************/
-static VOID primaryTermToCode(primaryTermFile,primaryTermPtr,imageID,maxIndices,
-                                                          primaryTermArrayCount,primaryTermArrayVersion)
-  FILE *primaryTermFile;
-  struct primary_term *primaryTermPtr;
-  int imageID;
-  int maxIndices;
-  int *primaryTermArrayCount,primaryTermArrayVersion;
+static VOID primaryTermToCode(
+  FILE *primaryTermFile,
+  struct primary_term *primaryTermPtr,
+  int imageID,
+  int maxIndices,
+  int *primaryTermArrayCount,
+  int primaryTermArrayVersion)
   {
     int count, arrayVersion;
     struct primary_term *nextPtr;

@@ -1384,7 +1384,11 @@ static void ConstructPrintWatch(
   BOOLEAN (*getWatchFunc)(void *))
   {
    PrintRouter(log,ValueToString((*constructClass->getConstructNameFunction)((struct constructHeader *) theConstruct)));
-   PrintRouter(log,(*getWatchFunc)(theConstruct) ? " = on\n" : " = off\n");
+
+   if ((*getWatchFunc)(theConstruct))
+     PrintRouter(log," = on\n");
+   else
+     PrintRouter(log," = off\n");
   }
 
 #endif /* DEBUGGING_FUNCTIONS */

@@ -572,6 +572,7 @@ int HashMultifield(
    union
      {
       double fv;
+      void *vv;
       unsigned int liv;
      } fis;
 
@@ -612,7 +613,9 @@ int HashMultifield(
 #if OBJECT_SYSTEM
           case INSTANCE_ADDRESS:
 #endif
-            count += (int) (((int) fieldPtr[i].value) * (i + 29));
+            fis.liv = 0;
+            fis.vv = fieldPtr[i].value;
+            count += (int) (fis.liv * (i + 29));
             break;
 
           case SYMBOL:

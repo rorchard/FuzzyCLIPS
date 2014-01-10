@@ -221,11 +221,10 @@ globle BOOLEAN is_defuzzify_value_valid()
     returns a ptr to the fuzzy value in the fuzzy fact 
     or NULL if error occurred
 ************************************************************/
-static struct fuzzy_value *seeIfFuzzyFact( theResult, functionName, argn )
-
-  DATA_OBJECT  *theResult;
-  char *functionName;
-  int argn;
+static struct fuzzy_value *seeIfFuzzyFact( 
+  DATA_OBJECT  *theResult,
+  char *functionName,
+  int argn)
 {
    long int factIndex;
    int found_fact;
@@ -288,11 +287,10 @@ static struct fuzzy_value *seeIfFuzzyFact( theResult, functionName, argn )
     
     returns a ptr to a fact or NULL if error occurred
 ************************************************************/
-static struct fuzzy_value *getFuzzyValuePtr(theResult, functionName, argn)
-
-  DATA_OBJECT  *theResult;
-  char *functionName;
-  int argn;
+static struct fuzzy_value *getFuzzyValuePtr(
+  DATA_OBJECT  *theResult,
+  char *functionName,
+  int argn)
 {      
    if ((theResult->type == INTEGER) || (theResult->type == FACT_ADDRESS))
      {
@@ -349,11 +347,10 @@ globle VOID *get_fs_template()
     returns a ptr to the fuzzyLv struct  or NULL if an 
     error occurred
 ************************************************************/
-static struct fuzzyLv *getFuzzyUniversePtr(theResult, functionName, argn)
-
-  DATA_OBJECT  *theResult;
-  char *functionName;
-  int argn;
+static struct fuzzyLv *getFuzzyUniversePtr(
+  DATA_OBJECT  *theResult,
+  char *functionName,
+  int argn)
 {
    struct fuzzy_value *fvPtr;
    struct deftemplate *theDeftemplate;
@@ -455,22 +452,22 @@ globle VOID *getu()
     and units of a single fact as a string
     
 ************************************************************/
-static char *u_to_string ( up, length_ptr )
-struct fuzzyLv *up;
-int *length_ptr;
+static char *u_to_string (
+struct fuzzyLv *up,
+int *length_ptr)
 {
     char *string = NULL;
     
     if (up->units != NULL)
     {
         *length_ptr = 36 + strlen(ValueToString(up->units));
-        string = gm2( (*length_ptr + 1));
+        string = (char *) gm2( (*length_ptr + 1));
         sprintf( string, "%.2f - %.2f %s", up->from, up->to, ValueToString(up->units));
     }
     else    /* no units specified */
     {
         *length_ptr = 36;
-        string = gm2((*length_ptr + 1));
+        string = (char *) gm2((*length_ptr + 1));
         sprintf( string, "%.2f - %.2f", up->from, up->to);
     }
 
@@ -651,9 +648,9 @@ globle VOID *get_fs_lv()
     
 ************************************************************/
 
-static char *fv_to_string ( fv_ptr, length_ptr )    
-struct fuzzy_value *fv_ptr;
-int *length_ptr;
+static char *fv_to_string (   
+struct fuzzy_value *fv_ptr,
+int *length_ptr)
 {
     int i, num;
     char *string, *strindex;
@@ -666,7 +663,7 @@ int *length_ptr;
        
     *length_ptr = num*33 + 50;  
 
-    string = gm2(*length_ptr + 1);
+    string = (char *) gm2(*length_ptr + 1);
     strindex = string;
     
     for (i=0; i < num; i++)    
@@ -1004,8 +1001,8 @@ globle double moment_defuzzify()
     division by zero.
 
  **********************************************************************/   
-static double moment_defuzzification(fv)
-  struct fuzzy_value *fv;  
+static double moment_defuzzification(
+  struct fuzzy_value *fv)  
 {
     int i,  num;
        
@@ -1102,8 +1099,13 @@ static double moment_defuzzification(fv)
 
     Conditions: x2 > x1.
  ***********************************************************************/
-static VOID get_moment_and_area ( moment_ptr, area_ptr, x1, y1, x2, y2 )
-double *moment_ptr, *area_ptr, x1, y1, x2, y2;
+static VOID get_moment_and_area (
+double *moment_ptr, 
+double *area_ptr, 
+double x1, 
+double y1, 
+double x2, 
+double y2)
 {
     /* rectangle of zero height or zero width? */
     if (( y1 == 0.0 && y2 == 0.0 ) ||
@@ -1184,8 +1186,8 @@ globle double maximum_defuzzify()
          Centre of gravity is likely more useful
  ********************************************************************/
  
-static double maximum_defuzzification(fv)
-  struct fuzzy_value *fv;  
+static double maximum_defuzzification(
+  struct fuzzy_value *fv)  
 {
     int i,  num, count;
        
@@ -1499,9 +1501,8 @@ static int nint( double );
 
 /* Define a rounding function if not already available */
 
-static int nint(f)
- 
-   double f;
+static int nint(
+   double f)
 {
   return( (int)floor(f + 0.5) );
 }
@@ -2058,7 +2059,7 @@ globle struct fuzzy_value *fuzzy_union()
                  f2Name = f2->name;
                  lenf1Name = strlen(f1Name);
                  lenf2Name = strlen(f2Name);
-                 str = gm2(lenf1Name + lenf2Name + 13);
+                 str = (char *) gm2(lenf1Name + lenf2Name + 13);
                  strcpy(str, "[ ");
                  strcpy(str+2, f1Name);
                  strcpy(str+2+lenf1Name," ] OR [ ");
@@ -2112,7 +2113,7 @@ globle struct fuzzy_value *fuzzy_intersection()
                  f2Name = f2->name;
                  lenf1Name = strlen(f1Name);
                  lenf2Name = strlen(f2Name);
-                 str = gm2(lenf1Name + lenf2Name + 14);
+                 str = (char *) gm2(lenf1Name + lenf2Name + 14);
                  strcpy(str, "[ ");
                  strcpy(str+2, f1Name);
                  strcpy(str+2+lenf1Name," ] AND [ ");
@@ -2233,9 +2234,9 @@ globle struct fuzzy_value *create_fuzzy_value()
     (create-fuzzy-value fuzzyTemplateName fuzzy-expression)
  *******************************************************************/
 
-static struct expr *CreateFuzzyValueParse( top, logName )
-  struct expr *top;
-  char *logName;
+static struct expr *CreateFuzzyValueParse( 
+  struct expr *top,
+  char *logName)
 {
   struct token theToken;
   struct deftemplate *theDeftemplate;

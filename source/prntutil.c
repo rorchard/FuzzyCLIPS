@@ -105,9 +105,9 @@ globle void PrintLongInteger(
 /*********************************************************/
 /* PrintFuzzyValue:  Controls printout of fuzzy values. */
 /*********************************************************/
-globle VOID PrintFuzzyValue(fileid,fv)
-  char *fileid;
-  struct fuzzy_value *fv;
+globle VOID PrintFuzzyValue(
+  char *fileid,
+  struct fuzzy_value *fv)
   {
    PrintRouter(fileid,fv->name);
   }

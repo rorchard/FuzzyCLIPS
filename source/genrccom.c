@@ -1488,9 +1488,11 @@ static BOOLEAN DefmethodWatchAccess(
 #if MAC_MPW || MAC_MCW || IBM_MCW
 #pragma unused(code)
 #endif
-   return(DefmethodWatchSupport(newState ? "watch" : "unwatch",NULL,
-                                newState,NULL,SetDefmethodWatch,argExprs));
-  }
+   if (newState)
+     return(DefmethodWatchSupport("watch",NULL,newState,NULL,SetDefmethodWatch,argExprs));
+   else
+     return(DefmethodWatchSupport("unwatch",NULL,newState,NULL,SetDefmethodWatch,argExprs));
+ }
 
 /***********************************************************************
   NAME         : DefmethodWatchPrint
@@ -1667,7 +1669,10 @@ static void PrintMethodWatchFlag(
    PrintRouter(log," ");
    GetDefmethodDescription(buf,59,theGeneric,theMethod);
    PrintRouter(log,buf);
-   PrintRouter(log,GetDefmethodWatch(theGeneric,theMethod) ? " = on\n" : " = off\n");
+   if (GetDefmethodWatch(theGeneric,theMethod))
+     PrintRouter(log," = on\n");
+   else
+     PrintRouter(log," = off\n");
   }
 
 #endif

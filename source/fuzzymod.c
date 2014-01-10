@@ -206,15 +206,13 @@ globle void initFuzzyModifierList()
 /*      only 1 of the 2nd or 3rd arg will be non NULL        */
 /*                                                           */
 /*************************************************************/
-static void GenericModFunction(fv, clipsfun
+static void GenericModFunction(
+    struct fuzzy_value *fv,
 #if DEFFUNCTION_CONSTRUCT
-                               , deffun
-#endif
-                              )
-    struct fuzzy_value *fv;
-    struct FunctionDefinition *clipsfun;
-#if DEFFUNCTION_CONSTRUCT
-    DEFFUNCTION *deffun;
+    struct FunctionDefinition *clipsfun,
+    DEFFUNCTION *deffun)
+#else
+    struct FunctionDefinition *clipsfun)
 #endif
 {
  int i;
@@ -293,8 +291,8 @@ static void GenericModFunction(fv, clipsfun
 /*      each elelment is complemented (1.0 - Y)              */
 /*                                                           */
 /*************************************************************/
-static void notModFunction(fv)
-    struct fuzzy_value *fv;
+static void notModFunction(
+    struct fuzzy_value *fv)
 {
  int i;
  int num;
@@ -323,9 +321,9 @@ static void notModFunction(fv)
 /*                                                           */
 /*                                                           */
 /*************************************************************/
-static void concentrate_dilute(fv, power)
-    struct fuzzy_value *fv;
-    double power;
+static void concentrate_dilute(
+    struct fuzzy_value *fv,
+    double power)
 {
  int i;
  int num;
@@ -352,8 +350,8 @@ static void concentrate_dilute(fv, power)
 /*      each elelment is squared (y**2)                      */
 /*                                                           */
 /*************************************************************/
-static void veryModFunction(fv)
-    struct fuzzy_value *fv;
+static void veryModFunction(
+    struct fuzzy_value *fv)
 {
   concentrate_dilute(fv, 2.0);
 }
@@ -368,8 +366,8 @@ static void veryModFunction(fv)
 /*      each elelment is squared (y**3)                      */
 /*                                                           */
 /*************************************************************/
-static void extremelyModFunction(fv)
-    struct fuzzy_value *fv;
+static void extremelyModFunction(
+    struct fuzzy_value *fv)
 {
   concentrate_dilute(fv, 3.0);
 }
@@ -384,8 +382,8 @@ static void extremelyModFunction(fv)
 /*      each elelment is square-rooted (y**0.333333)         */
 /*                                                           */
 /*************************************************************/
-static void more_or_lessModFunction(fv)
-    struct fuzzy_value *fv;
+static void more_or_lessModFunction(
+    struct fuzzy_value *fv)
 {
   concentrate_dilute(fv, 1.0/3.0);
 }
@@ -400,8 +398,8 @@ static void more_or_lessModFunction(fv)
 /*      each elelment is square-rooted (y**0.5)              */
 /*                                                           */
 /*************************************************************/
-static void somewhatModFunction(fv)
-    struct fuzzy_value *fv;
+static void somewhatModFunction(
+    struct fuzzy_value *fv)
 {
   concentrate_dilute(fv, 0.5);
 }
@@ -419,8 +417,8 @@ static void somewhatModFunction(fv)
 /*                  1.0 / highy                              */
 /*                                                           */
 /*************************************************************/
-static void normModFunction(fv)
-    struct fuzzy_value *fv;
+static void normModFunction(
+    struct fuzzy_value *fv)
 {
  int i;
  int num=fv->n;
@@ -458,8 +456,8 @@ static void normModFunction(fv)
 /*   for y values in range (0.5, 1.0]  1-2(1-y)**2           */
 /*                                                           */
 /*************************************************************/
-static void intensifyModFunction(fv)
-    struct fuzzy_value *fv;
+static void intensifyModFunction(
+    struct fuzzy_value *fv)
 {
  int i;
  int num;
@@ -491,8 +489,8 @@ static void intensifyModFunction(fv)
 /*      each elelment is square-rooted (y**1.25)             */
 /*                                                           */
 /*************************************************************/
-static void plusModFunction(fv)
-  struct fuzzy_value *fv;
+static void plusModFunction(
+  struct fuzzy_value *fv)
 {
   concentrate_dilute(fv, 1.25);
 }
@@ -509,8 +507,8 @@ static void plusModFunction(fv)
 /*                                                           */
 /*                                                           */
 /*************************************************************/
-static void aboveModFunction(fv)
-  struct fuzzy_value *fv;
+static void aboveModFunction(
+  struct fuzzy_value *fv)
 {
   int i, n, maxpos;
   double maxval;
@@ -551,8 +549,8 @@ static void aboveModFunction(fv)
 /*                                                           */
 /*                                                           */
 /*************************************************************/
-static void belowModFunction(fv)
-  struct fuzzy_value *fv;
+static void belowModFunction(
+  struct fuzzy_value *fv)
 {
   int i, n, maxpos;
   double maxval;
@@ -595,8 +593,8 @@ static void belowModFunction(fv)
 /*   where A is the fuzzy set                                */ 
 /*                                                           */
 /*************************************************************/
-  static void slightlyModFunction(fv)
-      struct fuzzy_value *fv;
+  static void slightlyModFunction(
+      struct fuzzy_value *fv)
 {
  struct fuzzy_value *tmpfv;
  struct fuzzy_value *andfv;
@@ -671,8 +669,8 @@ static void belowModFunction(fv)
 
 
 
-static void Yexpand_set(fv)
-  struct fuzzy_value *fv;
+static void Yexpand_set(
+  struct fuzzy_value *fv)
 {
     int i, j, count;
     int num=fv->n;
@@ -757,9 +755,9 @@ static void Yexpand_set(fv)
 /*                                                           */
 /* executes a modify function to change a fuzzy value        */
 /*************************************************************/
-globle void executeModifyFunction(fvptr, modListItem)
-   struct fuzzy_value *fvptr;
-   struct modifierListItem *modListItem;
+globle void executeModifyFunction(
+   struct fuzzy_value *fvptr,
+   struct modifierListItem *modListItem)
 {
   /* NOTE: only 1 of the 3 values (modfunc, modClipsfunc, or modDeffunc)
      will have a non NULL value ... this will determine the type of
@@ -797,8 +795,8 @@ globle void executeModifyFunction(fvptr, modListItem)
 /*                                                           */
 /* finds the named modifier in the list of modifiers         */
 /*************************************************************/
-globle struct modifierListItem *FindModifier(modname)
-   char *modname;
+globle struct modifierListItem *FindModifier(
+   char *modname)
 {
    struct modifierListItem *currentPtr;
    char *modLowerName;
@@ -806,7 +804,7 @@ globle struct modifierListItem *FindModifier(modname)
 
    len = strlen(modname);
 
-   modLowerName = gm2(sizeof(char) * len + 1);
+   modLowerName = (char *) gm2(sizeof(char) * len + 1);
 
    for (i=0; i<=len; i++)
         modLowerName[i] = (isalpha(modname[i])) ? tolower(modname[i]) :
@@ -839,15 +837,14 @@ globle struct modifierListItem *FindModifier(modname)
 /* add the same modifier as is already there).               */
 /*                                                           */
 /*************************************************************/
-globle int AddFuzzyModifier(modname, modfun, modClipsfun
+globle int AddFuzzyModifier(
+   char *modname,
+   void (*modfun)(struct fuzzy_value *fv),
 #if DEFFUNCTION_CONSTRUCT
-                            , modDeffun)
-#endif
-   char *modname;
-   void (*modfun)(struct fuzzy_value *fv);
-   struct FunctionDefinition *modClipsfun;
-#if DEFFUNCTION_CONSTRUCT
-   DEFFUNCTION *modDeffun;
+   struct FunctionDefinition *modClipsfun,
+   DEFFUNCTION *modDeffun)
+#else
+   struct FunctionDefinition *modClipsfun)
 #endif
 {
    struct modifierListItem *newPtr, *currentPtr, *lastPtr = NULL;
@@ -892,7 +889,7 @@ globle int AddFuzzyModifier(modname, modfun, modClipsfun
      }
      
    /* store the name of the modifier -- must copy the string! */
-   theName = gm2((int)strlen(modname)+1);
+   theName = (char *) gm2((int)strlen(modname)+1);
    strcpy(theName, modname);
    newPtr->name = theName;
 
@@ -915,8 +912,8 @@ globle int AddFuzzyModifier(modname, modfun, modClipsfun
 /* (note: cannot remove a system supplied modifier)          */
 /*                                                           */
 /*************************************************************/
-globle void RemoveFuzzyModifier(modname)
-   char *modname;
+globle void RemoveFuzzyModifier(
+   char *modname)
 {
    struct modifierListItem *currentPtr, *lastPtr;
 

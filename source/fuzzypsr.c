@@ -174,11 +174,11 @@ static char rcsid[] = "$Header: /dist/CVS/fzclips/src/fuzzypsr.c,v 1.3 2001/08/1
 /***********************************/
 /* S - Standard_function:          */
 /***********************************/
-globle double sFunction(x,alfa,beta,gamma)
-  double x;
-  double alfa;
-  double beta;
-  double gamma;
+globle double sFunction(
+  double x,
+  double alfa,
+  double beta,
+  double gamma)
   {
    register double gMinusa = gamma - alfa;
    register double gMinusaSqr = gMinusa * gMinusa;
@@ -251,12 +251,11 @@ globle void Init_S_Z_PI_yvalues()
 /* x and y values for the S, PI or Z function             */
 /**********************************************************/
 
-globle struct fuzzy_value *Get_S_Z_or_PI_FuzzyValue(alfa, beta, gamma, function_type)
-
-  double alfa;
-  double beta;
-  double gamma;
-  int   function_type;
+globle struct fuzzy_value *Get_S_Z_or_PI_FuzzyValue(
+  double alfa,
+  double beta,
+  double gamma,
+  int   function_type)
 {
     struct fuzzy_value *fv;
     double h, deltah;
@@ -269,7 +268,7 @@ globle struct fuzzy_value *Get_S_Z_or_PI_FuzzyValue(alfa, beta, gamma, function_
     fv = get_struct(fuzzy_value);
 
     fv->whichDeftemplate = NULL;
-    fv->name = gm2(4);
+    fv->name = (char *) gm2(4);
     strcpy(fv->name, "???");
 
     /* note: for PI function beta may be 0 -- return just 3 points
@@ -375,10 +374,10 @@ globle struct fuzzy_value *Get_S_Z_or_PI_FuzzyValue(alfa, beta, gamma, function_
 /* The list of primary terms and a list of modifiers and the     */
 /* universe of discourse are saved.                              */
 /*****************************************************************/
-globle struct fuzzyLv *ParseFuzzyTemplate(readSource, inputToken, DeftemplateError)
-  char *readSource;
-  struct token *inputToken;
-  int *DeftemplateError;
+globle struct fuzzyLv *ParseFuzzyTemplate(
+  char *readSource,
+  struct token *inputToken,
+  int *DeftemplateError)
   {
    struct fuzzyLv      *new_lv  = NULL;
 
@@ -445,10 +444,10 @@ globle struct fuzzyLv *ParseFuzzyTemplate(readSource, inputToken, DeftemplateErr
 /*  Must free any allocated structs if error         */
 /*                                                   */
 /*****************************************************/
-static struct fuzzyLv *parseUniverse(readSource, inputToken, DeftemplateError)
-  char *readSource;
-  struct token *inputToken;
-  int *DeftemplateError;
+static struct fuzzyLv *parseUniverse(
+  char *readSource,
+  struct token *inputToken,
+  int *DeftemplateError)
   {
    double f, t;       /* from and to values */
    struct fuzzyLv *u; /* universe of discourse is in fuzzyLv struct */
@@ -509,11 +508,11 @@ static struct fuzzyLv *parseUniverse(readSource, inputToken, DeftemplateError)
 /*  Already have the opening '(' of the list         */
 /*  Should eat up the closing ')' of list            */
 /*****************************************************/
-static void parsePrimaryTermList(readSource, inputToken, DeftemplateError, new_lv)
-  char *readSource;
-  struct token *inputToken;  
-  int  *DeftemplateError;
-  struct fuzzyLv *new_lv;
+static void parsePrimaryTermList(
+  char *readSource,
+  struct token *inputToken,  
+  int  *DeftemplateError,
+  struct fuzzyLv *new_lv)
   {
    struct primary_term *last_one, *next_one, *assert_list;
 
@@ -574,11 +573,11 @@ static void parsePrimaryTermList(readSource, inputToken, DeftemplateError, new_l
 /* Returns primary term.                                       */
 /* DeftemplateError flag is set to true if an error occurs.    */
 /***************************************************************/
-static struct primary_term *parsePrimaryTerm(readSource,inputToken,DeftemplateError,new_lv)
-  char *readSource;
-  struct token *inputToken;
-  int *DeftemplateError;
-  struct fuzzyLv *new_lv; 
+static struct primary_term *parsePrimaryTerm(
+  char *readSource,
+  struct token *inputToken,
+  int *DeftemplateError,
+  struct fuzzyLv *new_lv) 
 {
    struct primary_term *ptr;
    char *pt_name;
@@ -633,7 +632,7 @@ static struct primary_term *parsePrimaryTerm(readSource,inputToken,DeftemplateEr
      {
       ptr = get_struct(primary_term);
       if (fuzzy_value_dsc->name != NULL) rm(fuzzy_value_dsc->name, strlen(fuzzy_value_dsc->name)+1);
-      fuzzy_value_dsc->name = gm2(strlen(pt_name)+1);
+      fuzzy_value_dsc->name = (char *) gm2(strlen(pt_name)+1);
       strcpy(fuzzy_value_dsc->name, pt_name);
       ptr->fuzzy_value_description = (FUZZY_VALUE_HN *)AddFuzzyValue(fuzzy_value_dsc);
       /* AddFuzzyValue makes a copy of the Fuzzy Value so we need to return this one */
@@ -655,11 +654,11 @@ static struct primary_term *parsePrimaryTerm(readSource,inputToken,DeftemplateEr
 /***********************************/    
 /* parseTemplateFuzzyValue:        */
 /***********************************/
-static struct fuzzy_value *parseTemplateFuzzyValue(readSource,inputToken,DeftemplateError,new_lv)
-  char *readSource;
-  struct token *inputToken;
-  int  *DeftemplateError;
-  struct fuzzyLv *new_lv;
+static struct fuzzy_value *parseTemplateFuzzyValue(
+  char *readSource,
+  struct token *inputToken,
+  int  *DeftemplateError,
+  struct fuzzyLv *new_lv)
 {
    struct fuzzy_value *fv_ptr = NULL;
 
@@ -715,11 +714,11 @@ static struct fuzzy_value *parseTemplateFuzzyValue(readSource,inputToken,Deftemp
 /*       that routine to see if similar changes are needed!!!     */
 /******************************************************************/    
 
-static struct fuzzy_value *parseSingletonFuzzyValue(readSource,inputToken,DeftemplateError,u)
-  char *readSource;
-  struct token *inputToken;
-  int  *DeftemplateError;
-  struct fuzzyLv *u;
+static struct fuzzy_value *parseSingletonFuzzyValue(
+  char *readSource,
+  struct token *inputToken,
+  int  *DeftemplateError,
+  struct fuzzyLv *u)
   {
    
     struct fuzzy_value *fv;
@@ -946,11 +945,11 @@ static struct fuzzy_value *parseSingletonFuzzyValue(readSource,inputToken,Deftem
 /*       that routine to see if similar changes are needed!!!     */
 /******************************************************************/
 
-static struct fuzzy_value *parseStandardFuzzyValue(readSource,inputToken,DeftemplateError,u)
-  char *readSource;
-  struct token *inputToken;
-  int  *DeftemplateError;
-  struct fuzzyLv *u;
+static struct fuzzy_value *parseStandardFuzzyValue(
+  char *readSource,
+  struct token *inputToken,
+  int  *DeftemplateError,
+  struct fuzzyLv *u)
   {
     struct fuzzy_value *fv;
     double alfa, beta, gamma;
@@ -1132,8 +1131,8 @@ static struct fuzzy_value *parseStandardFuzzyValue(readSource,inputToken,Deftemp
 /*                                                                */
 /*                                                                */
 /******************************************************************/
-globle void InstallFuzzyTemplate(theDeftemplate)
-  struct deftemplate *theDeftemplate;
+globle void InstallFuzzyTemplate(
+  struct deftemplate *theDeftemplate)
 {
    struct primary_term *pt;
    struct fuzzyLv *fzTemplate = theDeftemplate->fuzzyTemplate;
@@ -1166,8 +1165,8 @@ globle void InstallFuzzyTemplate(theDeftemplate)
 }
 
 
-globle void DeinstallFuzzyTemplate(fzTemplate)
-  struct fuzzyLv *fzTemplate;
+globle void DeinstallFuzzyTemplate(
+  struct fuzzyLv *fzTemplate)
 {
    struct primary_term *pt, *this_pt;
 
@@ -1206,8 +1205,8 @@ globle void DeinstallFuzzyTemplate(fzTemplate)
 /* rtnPrimaryTermList:                                            */
 /*                                                                */
 /******************************************************************/
-static void rtnPrimaryTermList(pt)
-  struct primary_term *pt;
+static void rtnPrimaryTermList(
+  struct primary_term *pt)
   {
    struct primary_term *this_one;
    
@@ -1232,8 +1231,8 @@ static void rtnPrimaryTermList(pt)
 /******************************************************************/
 
 
-globle void InstallFuzzyValue(fv)
-  void *fv;
+globle void InstallFuzzyValue(
+  void *fv)
 {
    struct fuzzy_value *fvptr;
    
@@ -1249,8 +1248,8 @@ globle void InstallFuzzyValue(fv)
      } 
 }
            
-globle void DeinstallFuzzyValue(fv)
-  void *fv;
+globle void DeinstallFuzzyValue(
+  void *fv)
 {
    struct fuzzy_value *fvptr;
 
@@ -1262,7 +1261,7 @@ globle void DeinstallFuzzyValue(fv)
          {
            fvptr->whichDeftemplate->busyCount--;
          }
-      DecrementFuzzyValueCount(fv);
+      DecrementFuzzyValueCount((struct fuzzyValueHashNode *) fv);
      } 
 }
            
@@ -1273,8 +1272,8 @@ globle void DeinstallFuzzyValue(fv)
 /*                                                                */
 /******************************************************************/
 
-globle void rtnFuzzyValue(fv)
-  struct fuzzy_value *fv;
+globle void rtnFuzzyValue(
+  struct fuzzy_value *fv)
 {
     if (fv != NULL)
       {

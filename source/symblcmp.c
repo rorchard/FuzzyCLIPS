@@ -118,9 +118,9 @@ globle void AtomicValuesToCode(
 /*   1st write out the fuzzy value hash nodes (V array) putting correct*/
 /*   references to the actual fuzzy value array (W array)              */
 /***********************************************************************/
-static int FuzzyValueHashNodesToCode(fileName,version)
-  char *fileName;
-  int version;
+static int FuzzyValueHashNodesToCode(
+  char *fileName,
+  int version)
   {
    int i, j;
    struct fuzzyValueHashNode *hashPtr;
@@ -187,7 +187,7 @@ static int FuzzyValueHashNodesToCode(fileName,version)
            }
 
          /* fill in other slots in fuzzyValueHashNode struct */
-         fprintf(fp,"%d,0,0,0,%d,(struct fuzzy_value *) &W%d_%d[%d]",
+         fprintf(fp,"%ld,0,0,0,%d,(struct fuzzy_value *) &W%d_%d[%d]",
                      hashPtr->count + 1,i,
                      ImageID,arrayVersion,j);
 
@@ -223,9 +223,9 @@ static int FuzzyValueHashNodesToCode(fileName,version)
 /*   2nd write out the fuzzy value array (W array) putting correct     */
 /*   references to the x,y double arrays (X array)                      */
 /***********************************************************************/
-static int FuzzyValuesToCode(fileName,version)
-  char *fileName;
-  int version;
+static int FuzzyValuesToCode(
+  char *fileName,
+  int version)
   {
    int i, j;
    struct fuzzyValueHashNode *hashPtr;
@@ -347,9 +347,9 @@ static int FuzzyValuesToCode(fileName,version)
 /*   finally write out the fuzzy value xy array (X array) putting      */
 /*   x values followed by y values                                     */
 /***********************************************************************/
-static int FuzzyValueArraysToCode(fileName,version)
-  char *fileName;
-  int version;
+static int FuzzyValueArraysToCode(
+  char *fileName,
+  int version)
   {
    int i, j, k;
    struct fuzzyValueHashNode *hashPtr;
@@ -1107,9 +1107,9 @@ static int HashTablesToCode(
 /************************************************************/
 /* PrintFuzzyValueReference:                                */
 /************************************************************/
-globle VOID PrintFuzzyValueReference(fp,fvPtr)
-  FILE *fp;
-  struct fuzzyValueHashNode *fvPtr;
+globle VOID PrintFuzzyValueReference(
+  FILE *fp,
+  struct fuzzyValueHashNode *fvPtr)
   {
    if (fvPtr == NULL) fprintf(fp,"NULL");
    else fprintf(fp,"&V%d_%d[%d]",ImageID,

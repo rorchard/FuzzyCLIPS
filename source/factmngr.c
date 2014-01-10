@@ -608,7 +608,7 @@ globle void *Assert(
    */
    if (theFact->whichDeftemplate->hasFuzzySlots == TRUE)
     {
-      hashValue = HandleExistingFuzzyFact((VOID *)&theFact);
+      hashValue = HandleExistingFuzzyFact((VOID **) &theFact);
     }
    else
     {

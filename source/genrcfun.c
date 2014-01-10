@@ -692,7 +692,7 @@ globle char *TypeName(
       default                  : PrintErrorID("INSCOM",1,FALSE);
                                  PrintRouter(WERROR,"Undefined type in function type.\n");
                                  SetEvaluationError(TRUE);
-                                 return("<???UNKNOWN-TYPE???>");
+                                 return("<UNKNOWN-TYPE>");
      }
   }
 

@@ -149,8 +149,8 @@ static char rcsid[] = "$Header: /dist/CVS/fzclips/src/fuzzyutl.c,v 1.3 2001/08/1
 /*   V u (x) = 1 - u (x)                                         */
 /*    x f           f                                            */
 /*****************************************************************/
-globle void fcompliment(fv)
-  struct fuzzy_value *fv;
+globle void fcompliment(
+  struct fuzzy_value *fv)
 {
     int i;
   
@@ -221,11 +221,17 @@ globle void fcompliment(fv)
               
 *********************************************************************/
 
-static int line_segment_intersection(Ax, Ay, Bx, By, Cx, Cy, Dx, Dy, X, Y )
-  
-   double Ax, Ay, Bx, By;
-   double Cx, Cy, Dx, Dy;
-   double *X, *Y;
+static int line_segment_intersection(
+   double Ax, 
+   double Ay, 
+   double Bx, 
+   double By,
+   double Cx, 
+   double Cy, 
+   double Dx, 
+   double Dy,
+   double *X, 
+   double *Y)
 {
   int numer2Positive, denomPositive;
   double denominator;
@@ -321,8 +327,9 @@ static int line_segment_intersection(Ax, Ay, Bx, By, Cx, Cy, Dx, Dy, X, Y )
 *******************************************************************/
 
 
-globle int FZ_EQUAL( f1, f2 )
-   double f1, f2;
+globle int FZ_EQUAL(
+   double f1, 
+   double f2)
 {
   return( fabs(f1-f2) < FUZZY_TOLERANCE );
 }
@@ -335,10 +342,11 @@ globle int FZ_EQUAL( f1, f2 )
 
  *********************************************************************/
 
-static void STORE_THE_POINT(result, xval, yval)
+static void STORE_THE_POINT(
 
-  struct fuzzy_value *result;
-  double xval, yval;
+  struct fuzzy_value *result,
+  double xval, 
+  double yval)
 {  
   int i = result->n;
   double *resultX = result->x;
@@ -435,8 +443,9 @@ static void STORE_THE_POINT(result, xval, yval)
     returns the maximum y value of the intersection of two fuzzy sets
 
  *********************************************************************/
-globle double max_of_min(f1,f2)
-  struct fuzzy_value *f1,*f2;
+globle double max_of_min(
+  struct fuzzy_value *f1,
+  struct fuzzy_value *f2)
 {
   return( maxmin_intersect(f1, f2, FALSE, NULL) );
 }
@@ -448,8 +457,9 @@ globle double max_of_min(f1,f2)
     returns the intersection of two fuzzy sets
 
  *********************************************************************/
-globle struct fuzzy_value *fintersect(f1,f2)
-  struct fuzzy_value *f1,*f2;
+globle struct fuzzy_value *fintersect(
+  struct fuzzy_value *f1,
+  struct fuzzy_value *f2)
 {
   struct fuzzy_value *intersectSet;
 
@@ -483,8 +493,11 @@ globle struct fuzzy_value *fintersect(f1,f2)
    of the line segments
 
 ********************************************************************/
-static double findOverlapMaxYvalue(ay1, ay2, by1, by2)
-  double ay1, ay2, by1, by2;
+static double findOverlapMaxYvalue(
+  double ay1, 
+  double ay2, 
+  double by1, 
+  double by2)
 {
   double maxa, mina, maxb, minb;
 
@@ -533,10 +546,11 @@ static double findOverlapMaxYvalue(ay1, ay2, by1, by2)
     in the "name" field of the resulting fuzzy value
 
  *********************************************************************/
-globle double maxmin_intersect(f1, f2, DoIntersect, intersectSet)
-  struct fuzzy_value *f1,*f2;
-  int DoIntersect;
-  struct fuzzy_value **intersectSet;
+globle double maxmin_intersect(
+  struct fuzzy_value *f1,
+  struct fuzzy_value *f2,
+  int DoIntersect,
+  struct fuzzy_value **intersectSet)
 {
   double *Ax, *Ay;
   double *Bx, *By;
@@ -1276,9 +1290,9 @@ globle double maxmin_intersect(f1, f2, DoIntersect, intersectSet)
     Returns the fuzzy set which is the union of a horizontal
     line and a fuzzy set.
  **************************************************************/
-static struct fuzzy_value *horizontal_union(fv, yvalue)
-  struct fuzzy_value *fv;
-  double yvalue;
+static struct fuzzy_value *horizontal_union(
+  struct fuzzy_value *fv,
+  double yvalue)
 {
   return( horizontal_union_or_intersection(fv, yvalue, TRUE) );
 }
@@ -1296,9 +1310,9 @@ static struct fuzzy_value *horizontal_union(fv, yvalue)
     the same.
       
  **************************************************************/
-static struct fuzzy_value *max_prod_scale(fv, yvalue)
-  struct fuzzy_value *fv;
-  double yvalue;
+static struct fuzzy_value *max_prod_scale(
+  struct fuzzy_value *fv,
+  double yvalue)
 {
   double maxYValueOfSet;
   struct fuzzy_value *fvResult;
@@ -1340,9 +1354,9 @@ static struct fuzzy_value *max_prod_scale(fv, yvalue)
     Returns the fuzzy set which is the intersection of a horizontal
     line and a fuzzy set.
  **************************************************************/
-static struct fuzzy_value *horizontal_intersection(fv, yvalue)
-  struct fuzzy_value *fv;
-  double yvalue;
+static struct fuzzy_value *horizontal_intersection(
+  struct fuzzy_value *fv,
+  double yvalue)
 {
   return( horizontal_union_or_intersection(fv, yvalue, FALSE) );
 }
@@ -1357,10 +1371,10 @@ static struct fuzzy_value *horizontal_intersection(fv, yvalue)
     
     If unionFlg is true return a union else return an intersection
  *****************************************************************/
-static struct fuzzy_value *horizontal_union_or_intersection(fv, yvalue, unionFlg)
-  struct fuzzy_value *fv;
-  double yvalue;
-  int unionFlg;
+static struct fuzzy_value *horizontal_union_or_intersection(
+  struct fuzzy_value *fv,
+  double yvalue,
+  int unionFlg)
 {
     int i, num, count, newmax;
     struct fuzzy_value *newfv;
@@ -1527,8 +1541,9 @@ static struct fuzzy_value *horizontal_union_or_intersection(fv, yvalue, unionFlg
     in the "name" field of the resulting fuzzy value
 
  *********************************************************************/
-globle struct fuzzy_value *funion(f1,f2)
-  struct fuzzy_value *f1,*f2;
+globle struct fuzzy_value *funion(
+  struct fuzzy_value *f1,
+  struct fuzzy_value *f2)
 {
   struct fuzzy_value *result;
   double *Ax, *Ay, *Bx, *By;
@@ -2076,9 +2091,13 @@ globle struct fuzzy_value *funion(f1,f2)
 
     NOTE: will return true if even 1 point in common
  ************************************************************************/
-globle int nonintersectiontest ( Ax, Ay, Bx, By, Asize, Bsize )
-  double *Ax, *Ay, *Bx, *By;
-  int Asize, Bsize;
+globle int nonintersectiontest ( 
+  double *Ax, 
+  double *Ay, 
+  double *Bx, 
+  double *By,
+  int Asize, 
+  int Bsize)
 {
     int count, allzeros_A, i;
     int firstAisnonzero, firstAiszero, firstBisnonzero, firstBiszero;
@@ -2229,12 +2248,14 @@ globle int nonintersectiontest ( Ax, Ay, Bx, By, Asize, Bsize )
     of set1 is equal to the first point of set2, this common middle
     point is not repeated.
  *************************************************************************/
-static void concatenate ( set1x, set1y, length1, set2x, set2y, length2, newValue )
-  double *set1x, *set1y;
-  int length1;
-  double *set2x, *set2y;
-  int length2;
-  struct fuzzy_value *newValue;
+static void concatenate ( 
+  double *set1x, 
+  double *set1y,
+  int length1,
+  double *set2x, 
+  double *set2y,
+  int length2,
+  struct fuzzy_value *newValue)
 {
     double *x = newValue->x;
     double *y = newValue->y;
@@ -2366,8 +2387,8 @@ static void computeMinOfMaxmins()
 /*      deinstall it (or the fuzzy value in it)                    */
 /*   ALSO always make a copy of the fuzzy value to operate on      */
 /*******************************************************************/
-globle void computeFuzzyConsequence(new_fact)
-  struct fact *new_fact;
+globle void computeFuzzyConsequence(
+  struct fact *new_fact)
   {
     struct fuzzy_value *consequence, *conclusion;
     struct field  *elem;
@@ -2426,7 +2447,7 @@ globle void computeFuzzyConsequence(new_fact)
 
                 if (conclusion->name != NULL)
                     rm(conclusion->name, strlen(conclusion->name)+1);
-                conclusion->name = gm2(4);
+                conclusion->name = (char *) gm2(4);
                 strcpy(conclusion->name, "???");
                 elem[i].value = (void *)AddFuzzyValue(conclusion);
                 /* AddFuzzyValue copies the fuzzy variable so we need to remove 
@@ -2470,8 +2491,9 @@ globle void computeFuzzyConsequence(new_fact)
 /*  modify each fuzzy slot in fact2                         */
 /*                                                          */
 /************************************************************/
-globle void changeValueOfFuzzySlots(fact1,fact2)
-  struct fact *fact1, *fact2;
+globle void changeValueOfFuzzySlots(
+  struct fact *fact1, 
+  struct fact *fact2)
   {
    struct field *elem1, *elem2;
    int i, length;
@@ -2513,7 +2535,7 @@ globle void changeValueOfFuzzySlots(fact1,fact2)
        theUnion = funion(fv1_ptr, fv2_ptr);
        if (theUnion->name != NULL)
            rm(theUnion->name, strlen(theUnion->name)+1);
-       theUnion->name = gm2(4);
+       theUnion->name = (char *) gm2(4);
        strcpy(theUnion->name, "???");
       /* the name should be [ name_of_fv1 ] OR [ name_of_fv2 ] 
           unless one of the names is ??? 
@@ -2527,7 +2549,7 @@ globle void changeValueOfFuzzySlots(fact1,fact2)
            int   fv2nLen = strlen(fv2n);
 
            /* get space for [ name1 ] OR [ name2 ]   */
-           str = gm2(sizeof(char) * (fv1nLen + fv2nLen + 13));
+           str = (char *) gm2(sizeof(char) * (fv1nLen + fv2nLen + 13));
 
            str[0] = '['; str[1] = ' ';
            strcpy(str+2, fv1n);
@@ -2589,16 +2611,13 @@ globle void changeValueOfFuzzySlots(fact1,fact2)
  *******************************************************************/
  
  
-globle    void PrintFuzzyTemplateFact(logName, fv
+globle    void PrintFuzzyTemplateFact( 
+ char *logName,
 #if CERTAINTY_FACTORS  
-                                    , CF   
-#endif
-                                   )
- 
- char *logName;
- struct fuzzy_value *fv;
-#if CERTAINTY_FACTORS  
- double CF;   
+ struct fuzzy_value *fv,
+ double CF)   
+#else 
+ struct fuzzy_value *fv)   
 #endif
  {
    char *fvname;
@@ -2653,9 +2672,9 @@ globle    void PrintFuzzyTemplateFact(logName, fv
 /*************************************************************/
 /* PrintFloatFuzzy:  Converts number to CLIPS string format. */
 /*************************************************************/
-static void PrintFloatFuzzy(logName, number)
-  char *logName;
-  double number;
+static void PrintFloatFuzzy(
+  char *logName,
+  double number)
   {
    char floatString[40];
    char formatString[20];
@@ -2682,10 +2701,10 @@ static void PrintFloatFuzzy(logName, number)
 
  
  
-globle    void PrintFuzzySet(logName, fv)
+globle    void PrintFuzzySet(
  
- char *logName;
- struct fuzzy_value *fv;
+ char *logName,
+ struct fuzzy_value *fv)
  {
    int i, j;
  

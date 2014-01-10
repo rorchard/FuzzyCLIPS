@@ -119,9 +119,9 @@ static char rcsid[] = "$Header: /dist/CVS/fzclips/src/analysis.c,v 1.3 2001/08/1
 /*       conclusion can be adjusted accordingly.                  */
 /******************************************************************/
 
-globle unsigned int FuzzySlotAnalysis(patternPtr, numFuzzySlotsInNonNotPatterns)
-struct lhsParseNode *patternPtr;
-int *numFuzzySlotsInNonNotPatterns;
+globle unsigned int FuzzySlotAnalysis(
+struct lhsParseNode *patternPtr,
+int *numFuzzySlotsInNonNotPatterns)
 {
   unsigned int numFuzzySlots = 0;
   struct lhsParseNode *lhsPNPtr, *lhsSlotPtr;

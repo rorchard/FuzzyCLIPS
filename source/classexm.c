@@ -287,7 +287,10 @@ globle char *GetCreateAccessorString(
    if ((sd->createReadAccessor == 0) && (sd->createWriteAccessor == 0))
      return("NIL");
    else
-     return(sd->createReadAccessor ? "R" : "W");
+     {
+      if (sd->createReadAccessor) return "R";
+      else return "W";
+     }
   }
 
 /************************************************************
@@ -1184,10 +1187,13 @@ static void DisplaySlotConstraintInfo(
 static char *ConstraintCode(
   CONSTRAINT_RECORD *cr,
   unsigned allow,
-  unsigned restricted_value)
+  unsigned restrict)
   {
    if (allow || cr->anyAllowed)
-     return((restricted_value || cr->anyRestriction) ? " #  " : " +  ");
+     {
+      if (restrict || cr->anyRestriction) return " #  ";
+      else return " +  ";
+     }
    return("    ");
   }
 

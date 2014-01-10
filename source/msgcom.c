@@ -841,7 +841,11 @@ static BOOLEAN DefmessageHandlerWatchAccess(
 #if MAC_MPW || MAC_MCW || IBM_MCW
 #pragma unused(code)
 #endif
-   return(DefmessageHandlerWatchSupport(newState ? "watch" : "unwatch",NULL,newState,
+   if (newState)
+     return(DefmessageHandlerWatchSupport("watch",NULL,newState,
+                                        NULL,SetDefmessageHandlerWatch,argExprs));
+   else
+     return(DefmessageHandlerWatchSupport("unwatch",NULL,newState,
                                         NULL,SetDefmessageHandlerWatch,argExprs));
   }
 
@@ -1075,7 +1079,11 @@ static void PrintHandlerWatchFlag(
    PrintRouter(log,GetDefmessageHandlerName(theClass,theHandler));
    PrintRouter(log," ");
    PrintRouter(log,GetDefmessageHandlerType(theClass,theHandler));
-   PrintRouter(log,GetDefmessageHandlerWatch(theClass,theHandler) ? " = on\n" : " = off\n");
+
+   if (GetDefmessageHandlerWatch(theClass,theHandler))
+     PrintRouter(log," = on\n");
+   else
+     PrintRouter(log," = off\n");
   }
 
 #endif /* DEBUGGING_FUNCTIONS */

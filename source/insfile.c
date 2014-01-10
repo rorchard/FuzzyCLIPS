@@ -688,8 +688,10 @@ static DATA_OBJECT *ProcessSaveClassList(
    return(head);
 
 ProcessClassListError:
-   ExpectedTypeError1(functionName,argIndex,
-                      inheritFlag ? "valid class name" : "valid concrete class name");
+   if (inheritFlag)
+     ExpectedTypeError1(functionName,argIndex,"valid class name");
+   else
+     ExpectedTypeError1(functionName,argIndex,"valid concrete class name");
    ReturnSaveClassList(head);
    SetEvaluationError(TRUE);
    return(NULL);

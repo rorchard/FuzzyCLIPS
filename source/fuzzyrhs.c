@@ -180,14 +180,14 @@ static char rcsid[] = "$Header: /dist/CVS/fzclips/src/fuzzyrhs.c,v 1.3 2001/08/1
 /* CopyFuzzyValue:                                           */
 /* copies a Fuzzy Value structure                            */
 /*************************************************************/
-globle struct fuzzy_value *CopyFuzzyValue(fv)
-  struct fuzzy_value *fv;
+globle struct fuzzy_value *CopyFuzzyValue(
+  struct fuzzy_value *fv)
 {
     int i, num;
     struct fuzzy_value *new_fv;
    
     new_fv = get_struct(fuzzy_value);
-    new_fv->name = gm2(strlen(fv->name)+1);
+    new_fv->name = (char *) gm2(strlen(fv->name)+1);
     strcpy(new_fv->name, fv->name);
     new_fv->whichDeftemplate = fv->whichDeftemplate;
     num = fv->n;
@@ -212,8 +212,8 @@ globle struct fuzzy_value *CopyFuzzyValue(fv)
 /* compacts the membership values of a Fuzzy Value structure */
 /* so that n and maxn are the same                           */
 /*************************************************************/
-globle void CompactFuzzyValue(fv)
-  struct fuzzy_value *fv;
+globle void CompactFuzzyValue(
+  struct fuzzy_value *fv)
 {
     int i, num, maxnum;
     double *xptr, *yptr;   
@@ -264,17 +264,14 @@ globle void CompactFuzzyValue(fv)
 #pragma argsused
 #endif
 
-globle struct expr *ParseAssertFuzzyFact(readSource,tempToken,
-                                         error,endType,
-                                         constantsOnly,theDeftemplate,
-                                         variablesAllowed)
-  char *readSource;
-  struct token *tempToken;
-  int *error;
-  int endType;
-  int constantsOnly; /* TRUE if only Constants allowed in fuzzy set descriptions */
-  struct deftemplate *theDeftemplate;
-  int variablesAllowed;
+globle struct expr *ParseAssertFuzzyFact(
+  char *readSource,
+  struct token *tempToken,
+  int *error,
+  int endType,
+  int constantsOnly, /* TRUE if only Constants allowed in fuzzy set descriptions */
+  struct deftemplate *theDeftemplate,
+  int variablesAllowed)
 {
 #if MAC_MPW
 #pragma unused(endType)
@@ -410,11 +407,11 @@ globle struct expr *ParseAssertFuzzyFact(readSource,tempToken,
 /*                                                             */
 /***************************************************************/
 
-globle struct fuzzy_value *ParseLinguisticExpr(readSource,tempToken,lvp,error)
-  char *readSource;
-  struct token *tempToken;
-  struct fuzzyLv *lvp;
-  int *error;
+globle struct fuzzy_value *ParseLinguisticExpr(
+  char *readSource,
+  struct token *tempToken,
+  struct fuzzyLv *lvp,
+  int *error)
 {
    struct fuzzy_value *fvptr;
 
@@ -446,11 +443,11 @@ globle struct fuzzy_value *ParseLinguisticExpr(readSource,tempToken,lvp,error)
 /* ParseLinguisticExpr routine above).                         */
 /*                                                             */
 /***************************************************************/
-static struct fuzzy_value *ParseLExpr(readSource,tempToken,lvp,error)
-  char *readSource;
-  struct token *tempToken;
-  struct fuzzyLv *lvp;
-  int *error;
+static struct fuzzy_value *ParseLExpr(
+  char *readSource,
+  struct token *tempToken,
+  struct fuzzyLv *lvp,
+  int *error)
 {
    struct fuzzy_value *fvLeft, *fvRight, *fvTemp;
    char *tmpstr, *tmpstr2;
@@ -498,11 +495,11 @@ static struct fuzzy_value *ParseLExpr(readSource,tempToken,lvp,error)
 /* ParseLinguisticExpr routine above).                         */
 /*                                                             */
 /***************************************************************/
-static struct fuzzy_value *ParseLTerm(readSource,tempToken,lvp,error)
-  char *readSource;
-  struct token *tempToken;
-  struct fuzzyLv *lvp;
-  int *error;
+static struct fuzzy_value *ParseLTerm(
+  char *readSource,
+  struct token *tempToken,
+  struct fuzzyLv *lvp,
+  int *error)
 {
    struct fuzzy_value *fvLeft, *fvRight, *fvTemp;
    char *tmpstr, *tmpstr2;
@@ -552,11 +549,11 @@ static struct fuzzy_value *ParseLTerm(readSource,tempToken,lvp,error)
 /* ParseLinguisticExpr routine above).                         */
 /*                                                             */
 /***************************************************************/
-static struct fuzzy_value *ParseModExpr(readSource,tempToken,lvp,error)
-  char *readSource;
-  struct token *tempToken;
-  struct fuzzyLv *lvp;
-  int *error;
+static struct fuzzy_value *ParseModExpr(
+  char *readSource,
+  struct token *tempToken,
+  struct fuzzyLv *lvp,
+  int *error)
 {
    struct modifierListItem *mptr;
    struct fuzzy_value *fvptr;
@@ -635,11 +632,11 @@ static struct fuzzy_value *ParseModExpr(readSource,tempToken,lvp,error)
 /* Returns assert argument in fuzzy_value format.              */
 /* Error flag is set to true if an error occurs.               */
 /***************************************************************/
-static struct fuzzy_value *PrimaryTerm(readSource, tempToken, lvp, error)
-  char *readSource;
-  struct token *tempToken;
-  struct fuzzyLv *lvp;
-  int *error;
+static struct fuzzy_value *PrimaryTerm(
+  char *readSource,
+  struct token *tempToken,
+  struct fuzzyLv *lvp,
+  int *error)
 {
    struct primary_term *pt;
    struct fuzzy_value *fv;
@@ -671,9 +668,9 @@ static struct fuzzy_value *PrimaryTerm(readSource, tempToken, lvp, error)
 /*                                                             */
 /* Modifies fuzzy_value without making a new one.              */
 /***************************************************************/
-globle void ModifyFuzzyValue(mptr, fv)
-  struct modifierListItem *mptr;
-  struct fuzzy_value *fv;
+globle void ModifyFuzzyValue(
+  struct modifierListItem *mptr,
+  struct fuzzy_value *fv)
 {
    char *tmpstr;
 
@@ -695,13 +692,14 @@ globle void ModifyFuzzyValue(mptr, fv)
 /*************************************************************/
 /* modifyName:                                              */
 /*************************************************************/
-static char *modifyName(str1,str2)
-  char *str1, *str2;
+static char *modifyName(
+  char *str1, 
+  char *str2)
 {
    char *temp;
    int str1len = strlen(str1);
 
-   temp = gm2(sizeof(char) * (str1len + strlen(str2) + 2));
+   temp = (char *) gm2(sizeof(char) * (str1len + strlen(str2) + 2));
    strcpy(temp,str1);
    temp[str1len]   = ' ';
    temp[str1len+1] = '\0';
@@ -716,9 +714,9 @@ static char *modifyName(str1,str2)
 /* Returns a pointer to the primary term if found,           */
 /* otherwise NULL.                                           */
 /*************************************************************/
-static struct primary_term *FindPrimaryTerm(lvp,pt_name)
-  struct fuzzyLv *lvp;
-  void *pt_name;
+static struct primary_term *FindPrimaryTerm(
+  struct fuzzyLv *lvp,
+  void *pt_name)
 {
    struct primary_term *ptptr;
 
@@ -759,14 +757,13 @@ static struct primary_term *FindPrimaryTerm(lvp,pt_name)
         
  ******************************************************************/
 
-static struct expr *assertParseFuzzySet(readSource,tempToken,error,
-                       theDeftemplate,constantsOnly,onlyConstantsFound)
-  char *readSource;
-  struct token *tempToken;
-  int  *error;
-  struct deftemplate *theDeftemplate;
-  int constantsOnly;
-  int *onlyConstantsFound;
+static struct expr *assertParseFuzzySet(
+  char *readSource,
+  struct token *tempToken,
+  int  *error,
+  struct deftemplate *theDeftemplate,
+  int constantsOnly,
+  int *onlyConstantsFound)
 {
       struct expr *parse_result;
       int function_type = -1;
@@ -830,16 +827,14 @@ static struct expr *assertParseFuzzySet(readSource,tempToken,error,
     Function_type has aleady been determined as one of PI_FUNCTION, 
     S_FUNCTION, or Z_FUNCTION
  **********************************************************************/
-static struct expr *assertParseStandardSet(readSource,tempToken,error,
-                                           theDeftemplate,constantsOnly,
-                                           onlyConstantsFound,function_type)
-  char *readSource;
-  struct token *tempToken;
-  int  *error;
-  struct deftemplate *theDeftemplate;
-  int constantsOnly;
-  int *onlyConstantsFound;
-  int function_type;
+static struct expr *assertParseStandardSet(
+  char *readSource,
+  struct token *tempToken,
+  int  *error,
+  struct deftemplate *theDeftemplate,
+  int constantsOnly,
+  int *onlyConstantsFound,
+  int function_type)
 {
     struct expr *top, *deft, *arg1, *arg2;
     *onlyConstantsFound = FALSE;
@@ -907,15 +902,13 @@ static struct expr *assertParseStandardSet(readSource,tempToken,error,
     Parses fuzzy sets of form   (fuzzyvar (0 0) (5 .5) (7 1) (12 0))
     
  **********************************************************************/
-static struct expr *assertParseSingletonSet(readSource,tempToken,error,
-                                            theDeftemplate,
-                                            constantsOnly,onlyConstantsFound)
-  char *readSource;
-  struct token *tempToken;
-  int  *error;
-  struct deftemplate *theDeftemplate;
-  int constantsOnly;
-  int *onlyConstantsFound;
+static struct expr *assertParseSingletonSet(
+  char *readSource,
+  struct token *tempToken,
+  int  *error,
+  struct deftemplate *theDeftemplate,
+  int constantsOnly,
+  int *onlyConstantsFound)
 {
    
     int  count;    /* number of (x,y) pairs input */
@@ -1033,9 +1026,9 @@ static struct expr *assertParseSingletonSet(readSource,tempToken,error,
     this function evaluates the parameter expressions and returns 
     a fuzzy value structure.
  **********************************************************************/
-globle struct fuzzy_value *getConstantFuzzyValue( top, error )
-  struct expr *top;
-  int *error;
+globle struct fuzzy_value *getConstantFuzzyValue(
+  struct expr *top,
+  int *error)
 {
     struct fuzzy_value *new_fv = NULL;
     
@@ -1075,9 +1068,9 @@ globle struct fuzzy_value *getConstantFuzzyValue( top, error )
           routine as well
 
  **********************************************************************/
-static struct fuzzy_value *convertStandardSet( top, error )
-  struct expr *top;
-  int *error;
+static struct fuzzy_value *convertStandardSet(
+  struct expr *top,
+  int *error)
 {
     struct expr *next;
     struct fuzzy_value *fv;
@@ -1230,9 +1223,9 @@ static struct fuzzy_value *convertStandardSet( top, error )
           routine as well
 
  **********************************************************************/
-static struct fuzzy_value *convertSingletonSet( top, error )
-  struct expr *top;
-  int *error;
+static struct fuzzy_value *convertSingletonSet(
+  struct expr *top,
+  int *error)
 {
     struct expr *next;
     struct fuzzy_value *fv;
@@ -1265,7 +1258,7 @@ static struct fuzzy_value *convertSingletonSet( top, error )
         return(NULL);
 
     fv = get_struct(fuzzy_value);
-    fv->name = gm2(4);
+    fv->name = (char *) gm2(4);
     strcpy(fv->name, "???");
     fv->whichDeftemplate = deftPtr;
 
@@ -1445,10 +1438,10 @@ static struct fuzzy_value *convertSingletonSet( top, error )
     Given an expr structure which has been formed by tokenToFloatExpression(),
     this function evaluates the expression and returns the float value.
  **********************************************************************/
-static void expressionToFloat(exprPtr, result, error)
-  struct expr *exprPtr;
-  double *result;
-  int *error;
+static void expressionToFloat(
+  struct expr *exprPtr,
+  double *result,
+  int *error)
 {
 
   DATA_OBJECT exprValue;
@@ -1480,10 +1473,10 @@ static void expressionToFloat(exprPtr, result, error)
     Given an expr structure which has been formed by tokenToFloatExpression(),
     this function evaluates the expression and returns the integer value.
  **********************************************************************/
-static void expressionToInteger(exprPtr, result, error)
-  struct expr *exprPtr;
-  int *result;
-  int *error;
+static void expressionToInteger(
+  struct expr *exprPtr,
+  int *result,
+  int *error)
 {
 
   DATA_OBJECT exprValue;
@@ -1515,8 +1508,8 @@ static void expressionToInteger(exprPtr, result, error)
     Allocates memory for a floating point array of size "length" and
     returns a pointer to the allocated array.
  ************************************************************************/
-globle double *FgetArray ( length )
-  int length;
+globle double *FgetArray ( 
+  int length)
 {
     double *p;
 
@@ -1530,9 +1523,9 @@ globle double *FgetArray ( length )
     
     Deallocates memory of floating point array p of size "length".
  ************************************************************************/
-globle void FrtnArray ( p, length )
-  double *p;
-  int length;
+globle void FrtnArray (
+  double *p,
+  int length)
 {
     rm ( p, length * (sizeof(double)) );    /* a CLIPS memory function */
 }
@@ -1543,8 +1536,8 @@ globle void FrtnArray ( p, length )
     Allocates memory for an integer array of size "length" and
     returns a pointer to the allocated array.
  ************************************************************************/
-globle int *IgetArray ( length )
-  int length;
+globle int *IgetArray (
+  int length)
 {
     int *p;
 
@@ -1558,9 +1551,9 @@ globle int *IgetArray ( length )
     
     Deallocates memory of integer array p of size "length".
  ************************************************************************/
-globle void IrtnArray ( p, length )
-  int *p;
-  int length;
+globle void IrtnArray ( 
+  int *p,
+  int length)
 {
     rm ( p, length * (sizeof(int)) );    /* a CLIPS memory function */
 }
@@ -1568,8 +1561,8 @@ globle void IrtnArray ( p, length )
 /************************************************************************
     CgetArray(length)
  ************************************************************************/
-globle char *CgetArray ( length )
-  int length;
+globle char *CgetArray (
+  int length)
 {
     char *p = NULL;
     p = (char *) gm1 ( length * (sizeof (char)) );
@@ -1579,9 +1572,9 @@ globle char *CgetArray ( length )
 /************************************************************************
     CrtnArray ( p, length )
  ************************************************************************/
-globle void CrtnArray ( p, length )
-char *p;
-int length;
+globle void CrtnArray (
+char *p,
+int length)
 {
     rm ( p, length * (sizeof (char) ) );
 }
@@ -1609,11 +1602,11 @@ int length;
     parses constants, variables and functions and returns
     appropriate expr structures
  ****************************************************************/
-globle struct expr *tokenToFloatExpression ( readSource, tempToken, error, constantsOnly )
-  char *readSource;
-  struct token *tempToken;
-  int  *error;
-  int constantsOnly;
+globle struct expr *tokenToFloatExpression ( 
+  char *readSource,
+  struct token *tempToken,
+  int  *error,
+  int constantsOnly)
 {
     struct expr *result=NULL;
     int exprType;

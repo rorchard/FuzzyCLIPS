@@ -150,7 +150,10 @@ globle int CheckHandlerArgCount()
       PrintRouter(WERROR," in class ");
       PrintRouter(WERROR,GetDefclassName((void *) hnd->cls));
       PrintRouter(WERROR," expected ");
-      PrintRouter(WERROR,(hnd->maxParams == -1) ? "at least " : "exactly ");
+      if (hnd->maxParams == -1)
+        PrintRouter(WERROR,"at least ");
+      else
+        PrintRouter(WERROR,"exactly ");
       PrintLongInteger(WERROR,(long) (hnd->minParams-1));
       PrintRouter(WERROR," argument(s).\n");
       return(FALSE);

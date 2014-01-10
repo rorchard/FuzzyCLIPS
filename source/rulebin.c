@@ -826,9 +826,9 @@ static void BloadBinaryItem()
 #endif
 
 
-static VOID UpdatePatternFuzzyValues(buf,obji)
-  VOID *buf;
-  long obji;
+static VOID UpdatePatternFuzzyValues(
+  VOID *buf,
+  long obji)
   {
 #if MAC_MPW
 #pragma unused(obji)

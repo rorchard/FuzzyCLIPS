@@ -218,7 +218,10 @@ globle int ParseDefmessageHandler(
       PrintRouter(WDIALOG,ValueToString(mname));
       PrintRouter(WDIALOG," ");
       PrintRouter(WDIALOG,hndquals[mtype]);
-      PrintRouter(WDIALOG,(hnd == NULL) ? " defined.\n" : " redefined.\n");
+      if (hnd == NULL)
+        PrintRouter(WDIALOG," defined.\n");
+      else
+        PrintRouter(WDIALOG," redefined.\n");
      }
 
    if ((hnd != NULL) ? hnd->system : FALSE)

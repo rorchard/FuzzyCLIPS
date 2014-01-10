@@ -884,7 +884,7 @@ static void DumpExpression(
 
 #if FUZZY_DEFTEMPLATES 
          case FUZZY_VALUE:
-           PrintFuzzyValueReference(ExpressionFP,exprPtr->value);
+           PrintFuzzyValueReference(ExpressionFP,(FUZZY_VALUE_HN *) exprPtr->value);
            break;
 #endif
 

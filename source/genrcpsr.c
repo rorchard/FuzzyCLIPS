@@ -334,7 +334,11 @@ globle BOOLEAN ParseDefmethod(
      {
       PrintRouter(WDIALOG,"   Method #");
       PrintLongInteger(WDIALOG,(long) meth->index);
-      PrintRouter(WDIALOG,mnew ? " defined.\n" : " redefined.\n");
+
+      if (mnew)
+        PrintRouter(WDIALOG," defined.\n");
+      else
+        PrintRouter(WDIALOG," redefined.\n");
      }
    return(FALSE);
 

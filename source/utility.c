@@ -600,6 +600,12 @@ globle int ItemHashValue(
   void *theValue,
   int theRange)
   {
+   union
+     {
+      void *vv;
+      unsigned uv;
+     } fis;
+
    switch(theType)
      {
       case FLOAT:
@@ -627,7 +633,9 @@ globle int ItemHashValue(
 #if OBJECT_SYSTEM
       case INSTANCE_ADDRESS:
 #endif
-        return(((int) theValue) % theRange);
+        fis.uv = 0;
+        fis.vv = theValue;
+        return(fis.uv % theRange);
 
       default:
         SystemError("UTILITY",1);

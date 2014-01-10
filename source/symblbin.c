@@ -445,8 +445,8 @@ static void WriteNeededBitMaps(
 /* WriteNeededFuzzyValues: Stores all of the fuzzy values in the        */
 /*   symbol table needed for this binary image in the binary save file  */
 /************************************************************************/
-static void WriteNeededFuzzyValues(fp)
-  FILE *fp;
+static void WriteNeededFuzzyValues(
+  FILE *fp)
   {
    int i;
    FUZZY_VALUE_HN **fuzzyValueArray;
@@ -778,7 +778,7 @@ static VOID ReadNeededFuzzyValues()
        fvptr->whichDeftemplate = NULL;
 #endif
       GenRead(&nameLen, (unsigned long) sizeof(int));
-      fvptr->name = gm2(nameLen);
+      fvptr->name = (char *) gm2(nameLen);
       GenRead(fvptr->name, (unsigned long) sizeof(char)*nameLen);
            GenRead(&fvptr->n,(unsigned long) sizeof(int));
            fvptr->maxn = fvptr->n;

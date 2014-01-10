@@ -92,8 +92,8 @@ static char rcsid[] = "$Header: /dist/CVS/fzclips/src/scanner.c,v 1.3 2001/08/11
 /*       STOP will be obtained again anyways -- I hope!!               */
 /***********************************************************************/
 
-globle void UnGetToken(theToken)
- struct token *theToken;
+globle void UnGetToken(
+ struct token *theToken)
  {
    if (theToken->type != STOP)
      {

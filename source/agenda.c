@@ -1162,8 +1162,8 @@ globle SYMBOL_HN *GetCFEvaluationCommand()
 /*   to a specified rule CF evaluation behavior, returns a       */
 /*   character string of the behavior's name.                    */
 /*****************************************************************/
-static char *CFEvaluationName(strategy)
-  int strategy;
+static char *CFEvaluationName(
+  int strategy)
   {
    char *sname;
 
@@ -1192,8 +1192,8 @@ globle BOOLEAN GetCFEvaluation()
 /*****************************************************************************/
 /* SetCFEvaluation: Sets the value of the variable CFEvaluation.             */
 /*****************************************************************************/
-globle BOOLEAN SetCFEvaluation(value)
-  int value;
+globle BOOLEAN SetCFEvaluation(
+  int value)
   {
    int ov;
 
@@ -1210,8 +1210,8 @@ globle BOOLEAN SetCFEvaluation(value)
 /*   with the rule is reevaluated, the value is stored as the    */
 /*   rule's current CF, and it is then returned.                 */
 /*****************************************************************/
-static double EvaluateCF(vPtr)
- VOID *vPtr;
+static double EvaluateCF(
+ VOID *vPtr)
  {
   struct defrule *rPtr;
   DATA_OBJECT CFValue;

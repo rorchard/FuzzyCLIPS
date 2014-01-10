@@ -116,11 +116,11 @@ globle VOID InitializeCF()
 /* Parses uncertainty factor for Declare of Rule                */
 /*                                                              */
 /****************************************************************/
-globle struct expr *ParseDeclareUncertainty(readSource,ruleName,error,cfVALUE)
-  char *readSource;
-  char *ruleName;
-  int *error;
-  double *cfVALUE;
+globle struct expr *ParseDeclareUncertainty(
+  char *readSource,
+  char *ruleName,
+  int *error,
+  double *cfVALUE)
   {
    double cf;
    DATA_OBJECT cfValueDO;
@@ -190,9 +190,9 @@ globle struct expr *ParseDeclareUncertainty(readSource,ruleName,error,cfVALUE)
 /*****************************************************************/
 /* printCF: prints certainty factor                              */
 /*****************************************************************/  
-globle VOID printCF(logicalName,cf)
-  char *logicalName;
-  double cf;
+globle VOID printCF(
+  char *logicalName,
+  double cf)
   {
    char printSpace[20];
    
@@ -217,8 +217,9 @@ globle VOID printCF(logicalName,cf)
 /* p(f1,f2) = max(min(u  (x),u  (x))                              */ 
 /*             x       f1     f2                                  */
 /******************************************************************/
-globle double possibility(f1,f2)
-  struct fuzzy_value *f1, *f2;
+globle double possibility(
+  struct fuzzy_value *f1, 
+  struct fuzzy_value *f2)
   {        
     return( max_of_min ( f1, f2 ) );
   }
@@ -230,8 +231,9 @@ globle double possibility(f1,f2)
 /*                   _                                              */
 /* n(f1,f2) = 1 - p(f1,f2)                                          */
 /********************************************************************/
-globle double necessity(f1,f2)
-  struct fuzzy_value *f1, *f2;
+globle double necessity(
+  struct fuzzy_value *f1, 
+  struct fuzzy_value *f2)
   {
    struct fuzzy_value *fc;
    double nc;
@@ -251,8 +253,9 @@ globle double necessity(f1,f2)
 /*     then  p(f1,f2)                                            */
 /*     else  (n(f1,f2) + 0.5) * p(f1,f2)                         */       
 /*****************************************************************/
-globle double similarity(f1,f2)
-  struct fuzzy_value *f1, *f2;
+globle double similarity(
+  struct fuzzy_value *f1,
+  struct fuzzy_value *f2)
   {
    double nec, poss;
 
@@ -322,9 +325,9 @@ globle void disable_rule_cf_calculation()
                 patterns on the LHS
 
  ****************************************************************/
-globle double computeStdConclCF(ruleCF, binds)
-  double ruleCF;
-  struct partialMatch *binds;
+globle double computeStdConclCF(
+  double ruleCF,
+  struct partialMatch *binds)
 {
    double StdCF;
    struct genericMatch *antecedent_binds;
@@ -396,9 +399,9 @@ globle double computeStdConclCF(ruleCF, binds)
  ****************************************************************/
 #if FUZZY_DEFTEMPLATES
 
-globle double computeFuzzyCrispConclCF(theRule, binds)
-  struct defrule *theRule;
-  struct partialMatch *binds;
+globle double computeFuzzyCrispConclCF(
+  struct defrule *theRule,
+  struct partialMatch *binds)
 {
    double FuzzyCrispCF;
    struct fuzzy_value *fact_fv, *antecedent_fv;
@@ -523,8 +526,8 @@ globle double computeFuzzyCrispConclCF(theRule, binds)
     not yet been calculated and should now be calculated )
  ********************************************************************/
  
-globle VOID changeCFofNewFact(newFact)
-  struct fact *newFact;
+globle VOID changeCFofNewFact(
+  struct fact *newFact)
   {
     double ConcludingCFofExecutingRule;
 
@@ -589,10 +592,9 @@ globle VOID changeCFofNewFact(newFact)
     
     returns a ptr to a fact or NULL if error occurred
 ************************************************************/
-static struct fact *getFactPtr(theArgument, functionName)
-
-  struct expr *theArgument;
-  char *functionName;
+static struct fact *getFactPtr(
+  struct expr *theArgument,
+  char *functionName)
 {
    long int factIndex;
    int found_fact;
@@ -755,9 +757,9 @@ globle double get_threshold()
 
 
  *******************************************************************/
-globle VOID changeCFofExistingFact(newFact,oldFact)
-  struct fact *newFact;
-  struct fact *oldFact;
+globle VOID changeCFofExistingFact(
+  struct fact *newFact,
+  struct fact *oldFact)
   {
     if (oldFact->factCF < newFact->factCF)
       {
@@ -793,9 +795,9 @@ globle VOID changeCFofExistingFact(newFact,oldFact)
 
 
  *******************************************************************/
-globle VOID changeCFofNewVsExistingFact(newFact,oldFact)
-  struct fact *newFact;
-  struct fact *oldFact;
+globle VOID changeCFofNewVsExistingFact(
+  struct fact *newFact,
+  struct fact *oldFact)
   {
     if (newFact->factCF < oldFact->factCF)
       {
@@ -813,9 +815,9 @@ globle VOID changeCFofNewVsExistingFact(newFact,oldFact)
     
  *******************************************************************/
 
-globle VOID   cfInformationError(name)
+globle VOID   cfInformationError(
 
-  char *name;
+  char *name)
 {
    PrintErrorID("Certainty Factors ",901,TRUE);
    PrintRouter(WERROR,"This error occurred while evaluating a Certainty Factor");

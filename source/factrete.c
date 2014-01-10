@@ -272,9 +272,9 @@ globle BOOLEAN FactPNGetVar3(
 /*       so bundle it with the 1st arg in a struct and take it apart     */
 /*       in this routine                                                 */
 /*************************************************************************/
-globle BOOLEAN FactFuzzyValuePNFunction(theValuePosition, returnValue)
-  VOID *theValuePosition;
-  DATA_OBJECT_PTR returnValue;
+globle BOOLEAN FactFuzzyValuePNFunction(
+  VOID *theValuePosition,
+  DATA_OBJECT_PTR returnValue)
   {
    struct ValPos { VOID *Value; int Position; };
    struct field *fieldPtr;

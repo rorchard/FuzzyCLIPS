@@ -224,6 +224,7 @@ globle struct expr *GetRHSPattern(
    int printError, count;
    struct deftemplate *theDeftemplate;
    struct symbolHashNode *templateName;
+   char *nullBitMap = "\0";
 
    /*=================================================*/
    /* Get the opening parenthesis of the RHS pattern. */
@@ -499,7 +500,7 @@ globle struct expr *GetRHSPattern(
    /* single multifield slot.                                  */
    /*==========================================================*/
 
-   firstOne->nextArg = GenConstant(FACT_STORE_MULTIFIELD,AddBitMap("\0",1));
+   firstOne->nextArg = GenConstant(FACT_STORE_MULTIFIELD,AddBitMap((void *) nullBitMap,1));
    firstOne->nextArg->argList = argHead;
 
 #if FUZZY_DEFTEMPLATES 

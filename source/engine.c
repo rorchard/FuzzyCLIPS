@@ -987,10 +987,10 @@ globle BOOLEAN RemoveRunFunction(
 /************************************************************************/
 /* AddRunStartFunction: Adds a function to the ListOfRunStartFunctions. */
 /************************************************************************/
-globle BOOLEAN AddRunStartFunction(name,functionPtr,priority)
-  char *name;
-   void (*functionPtr)(void);
-  int priority;
+globle BOOLEAN AddRunStartFunction(
+  char *name,
+   void (*functionPtr)(void),
+  int priority)
   {
    ListOfRunStartFunctions = AddFunctionToCallList(name,priority,
                                               functionPtr,
@@ -1001,8 +1001,8 @@ globle BOOLEAN AddRunStartFunction(name,functionPtr,priority)
 /********************************************************************************/
 /* RemoveRunStartFunction: Removes a function from the ListOfRunStartFunctions. */
 /********************************************************************************/
-globle BOOLEAN RemoveRunStartFunction(name)
-  char *name;
+globle BOOLEAN RemoveRunStartFunction(
+  char *name)
   {
    int found;
 
@@ -1017,10 +1017,10 @@ globle BOOLEAN RemoveRunStartFunction(name)
 /************************************************************************/
 /* AddRunStopFunction: Adds a function to the ListOfRunStopFunctions.   */
 /************************************************************************/
-globle BOOLEAN AddRunStopFunction(name,functionPtr,priority)
-  char *name;
-   void (*functionPtr)(void);
-  int priority;
+globle BOOLEAN AddRunStopFunction(
+  char *name,
+   void (*functionPtr)(void),
+  int priority)
   {
    ListOfRunStopFunctions = AddFunctionToCallList(name,priority,
                                               functionPtr,
@@ -1031,8 +1031,8 @@ globle BOOLEAN AddRunStopFunction(name,functionPtr,priority)
 /********************************************************************************/
 /* RemoveRunStopFunction: Removes a function from the ListOfRunStopFunctions.   */
 /********************************************************************************/
-globle BOOLEAN RemoveRunStopFunction(name)
-  char *name;
+globle BOOLEAN RemoveRunStopFunction(
+  char *name)
   {
    int found;
 
